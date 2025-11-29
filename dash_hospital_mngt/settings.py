@@ -83,6 +83,7 @@ PROJECT_APPS = [
     "apps.users.apps.UserConfig",
     "apps.dashboard.apps.DashboardConfig",
     "apps.api.apps.APIConfig",
+    "apps.clinic.apps.ClinicConfig",
     "apps.utils",
     "apps.web",
     "apps.chat",
@@ -222,7 +223,7 @@ SOCIALACCOUNT_FORMS = {
     "signup": "apps.users.forms.CustomSocialSignupForm",
 }
 
-FRONTEND_ADDRESS = env("FRONTEND_ADDRESS", default="http://localhost:5174")
+FRONTEND_ADDRESS = env("FRONTEND_ADDRESS", default="http://localhost:5175")
 USE_HEADLESS_URLS = env.bool("USE_HEADLESS_URLS", default=False)
 if USE_HEADLESS_URLS:
     # These URLs will use the React front end instead of the Django views
@@ -235,10 +236,14 @@ if USE_HEADLESS_URLS:
 # needed for cross-origin CSRF
 CSRF_TRUSTED_ORIGINS = [FRONTEND_ADDRESS]
 CSRF_COOKIE_DOMAIN = env("CSRF_COOKIE_DOMAIN", default=None)
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
+CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = (*default_headers, "x-password-reset-key", "x-email-verification-key")
+CORS_ALLOW_HEADERS = (*default_headers, "x-password-reset-key", "x-email-verification-key", "x-csrftoken")
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[FRONTEND_ADDRESS])
 SESSION_COOKIE_DOMAIN = env("SESSION_COOKIE_DOMAIN", default=None)
+SESSION_COOKIE_SAMESITE = "Lax"
 
 # User signup configuration: change to "mandatory" to require users to confirm email before signing in.
 # or "optional" to send confirmation emails but not require them
