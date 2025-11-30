@@ -108,3 +108,105 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ("first_name", "last_name", "avatar", "language", "timezone")
+
+
+class StaffListSerializer(serializers.ModelSerializer):
+    """Serializer for listing staff members."""
+
+    class Meta:
+        model = CustomUser
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "is_owner",
+            "is_active",
+            "date_joined",
+        )
+        read_only_fields = fields
+
+
+class StaffCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a new staff member with password."""
+
+    password = serializers.CharField(write_only=True, required=True, min_length=6)
+
+    class Meta:
+        model = CustomUser
+        fields = (
+            "email",
+            "password",
+            "first_name",
+            "last_name",
+        )
+
+    def validate_email(self, value):
+        """Check that email is unique within the clinic."""
+        clinic = self.context["request"].user.clinic
+        if CustomUser.objects.filter(email=value, clinic=clinic).exists():
+            raise serializers.ValidationError(_("A staff member with this email already exists."))
+        return value.lower()
+
+    def create(self, validated_data):
+        """Create staff user."""
+        clinic = self.context["request"].user.clinic
+        password = validated_data.pop("password")
+
+        # Default role is Secretary - can be changed via Roles page
+        user = CustomUser.objects.create_user(
+            username=validated_data["email"],
+            email=validated_data["email"],
+            password=password,
+            clinic=clinic,
+            is_owner=False,
+            first_name=validated_data.get("first_name", ""),
+            last_name=validated_data.get("last_name", ""),
+            role=CustomUser.Role.SECRETARY,
+        )
+
+        return user
+
+
+class StaffUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating staff member (with optional password reset)."""
+
+    password = serializers.CharField(write_only=True, required=False, min_length=6, allow_blank=True)
+
+    class Meta:
+        model = CustomUser
+        fields = (
+            "email",
+            "password",
+            "first_name",
+            "last_name",
+            "is_active",
+        )
+
+    def validate_email(self, value):
+        """Check that email is unique within the clinic (excluding self)."""
+        clinic = self.context["request"].user.clinic
+        instance = self.instance
+        if CustomUser.objects.filter(email=value, clinic=clinic).exclude(pk=instance.pk).exists():
+            raise serializers.ValidationError(_("A staff member with this email already exists."))
+        return value.lower()
+
+    def update(self, instance, validated_data):
+        """Update staff user, optionally resetting password."""
+        password = validated_data.pop("password", None)
+
+        # Update fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Update username if email changed
+        if "email" in validated_data:
+            instance.username = validated_data["email"]
+
+        # Reset password if provided
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
