@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Clinic
+
+from apps.clinic.models import Clinic
 
 
 class ClinicSerializer(serializers.ModelSerializer):

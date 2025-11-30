@@ -6,7 +6,7 @@ from rest_framework import serializers
 from apps.clinic.models import Clinic
 from apps.clinic.serializers import ClinicSerializer
 
-from .models import CustomUser
+from .models import CustomUser, Policy, Role, RolePolicy, UserRole
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -16,6 +16,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
     """
 
     clinic = ClinicSerializer(read_only=True)
+    roles = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
@@ -29,7 +31,29 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "clinic",
             "role",
             "is_owner",
+            "roles",
+            "permissions",
         )
+
+    def get_roles(self, obj):
+        """Return list of role objects assigned to user."""
+        from apps.users.serializers import RoleSerializer
+
+        user_roles = obj.user_roles.select_related("role")
+        return [
+            {
+                "id": ur.role.id,
+                "name": ur.role.name,
+                "slug": ur.role.slug,
+                "color": ur.role.color,
+                "icon": ur.role.icon,
+            }
+            for ur in user_roles
+        ]
+
+    def get_permissions(self, obj):
+        """Return list of permission codes for user."""
+        return list(obj.get_permissions())
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -61,6 +85,9 @@ class RegisterSerializer(serializers.Serializer):
         # Create clinic first
         clinic = Clinic.objects.create(name=clinic_name)
 
+        # Create default roles for the clinic
+        roles = clinic.create_default_roles()
+
         # Create user (owner is always a doctor)
         user = CustomUser.objects.create_user(
             username=validated_data["email"],  # Use email as username
@@ -70,6 +97,11 @@ class RegisterSerializer(serializers.Serializer):
             role=CustomUser.Role.DOCTOR,
             is_owner=True,
         )
+
+        # Assign Administrator role to the owner
+        admin_role = next((r for r in roles if r.slug == "administrator"), None)
+        if admin_role:
+            UserRole.objects.create(user=user, role=admin_role)
 
         return user
 
@@ -113,6 +145,8 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 class StaffListSerializer(serializers.ModelSerializer):
     """Serializer for listing staff members."""
 
+    roles = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
         fields = (
@@ -124,8 +158,23 @@ class StaffListSerializer(serializers.ModelSerializer):
             "is_owner",
             "is_active",
             "date_joined",
+            "roles",
         )
         read_only_fields = fields
+
+    def get_roles(self, obj):
+        """Return list of role objects assigned to user."""
+        user_roles = obj.user_roles.select_related("role")
+        return [
+            {
+                "id": ur.role.id,
+                "name": ur.role.name,
+                "slug": ur.role.slug,
+                "color": ur.role.color,
+                "icon": ur.role.icon,
+            }
+            for ur in user_roles
+        ]
 
 
 class StaffCreateSerializer(serializers.ModelSerializer):
@@ -210,3 +259,168 @@ class StaffUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class PolicySerializer(serializers.ModelSerializer):
+    """Serializer for listing policies."""
+
+    class Meta:
+        model = Policy
+        fields = ("id", "code", "name", "category")
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    """Serializer for listing roles with user count and policies."""
+
+    user_count = serializers.SerializerMethodField()
+    policies = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Role
+        fields = (
+            "id",
+            "name",
+            "slug",
+            "description",
+            "is_system",
+            "is_admin",
+            "policies",
+            "color",
+            "icon",
+            "user_count",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "created_at", "updated_at")
+
+    def get_user_count(self, obj):
+        return obj.user_roles.count()
+
+    def get_policies(self, obj):
+        """Return list of policies for this role."""
+        policies = obj.get_policies()
+        return PolicySerializer(policies, many=True).data
+
+
+class RoleCreateUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for creating and updating roles."""
+
+    policy_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Policy.objects.all(),
+        many=True,
+        write_only=True,
+        required=False,
+    )
+
+    class Meta:
+        model = Role
+        fields = (
+            "name",
+            "slug",
+            "description",
+            "is_admin",
+            "policy_ids",
+            "color",
+            "icon",
+        )
+
+    def validate_slug(self, value):
+        """Ensure slug is unique within the clinic."""
+        clinic = self.context["request"].user.clinic
+        instance = self.instance
+
+        queryset = Role.objects.filter(clinic=clinic, slug=value)
+        if instance:
+            queryset = queryset.exclude(pk=instance.pk)
+
+        if queryset.exists():
+            raise serializers.ValidationError(_("A role with this slug already exists in your clinic."))
+        return value
+
+    def create(self, validated_data):
+        """Create role with clinic from request user."""
+        clinic = self.context["request"].user.clinic
+        policy_ids = validated_data.pop("policy_ids", [])
+
+        role = Role.objects.create(clinic=clinic, **validated_data)
+
+        # Create RolePolicy entries
+        for policy in policy_ids:
+            RolePolicy.objects.create(role=role, policy=policy)
+
+        return role
+
+    def update(self, instance, validated_data):
+        """Update role and its policies."""
+        policy_ids = validated_data.pop("policy_ids", None)
+
+        # Update role fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Update policies if provided
+        if policy_ids is not None:
+            # Clear existing policies
+            instance.role_policies.all().delete()
+            # Add new policies
+            for policy in policy_ids:
+                RolePolicy.objects.create(role=instance, policy=policy)
+
+        return instance
+
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    """Serializer for user role assignments."""
+
+    role = RoleSerializer(read_only=True)
+    role_id = serializers.PrimaryKeyRelatedField(
+        queryset=Role.objects.all(),
+        write_only=True,
+        source="role",
+    )
+
+    class Meta:
+        model = UserRole
+        fields = ("id", "role", "role_id", "assigned_by", "created_at")
+        read_only_fields = ("id", "assigned_by", "created_at")
+
+    def validate_role_id(self, value):
+        """Ensure role belongs to the same clinic as the user."""
+        request = self.context.get("request")
+        if request and value.clinic != request.user.clinic:
+            raise serializers.ValidationError(_("Role must belong to your clinic."))
+        return value
+
+    def create(self, validated_data):
+        """Create user role assignment."""
+        request = self.context.get("request")
+        validated_data["assigned_by"] = request.user if request else None
+        return super().create(validated_data)
+
+
+class UserWithRolesSerializer(serializers.ModelSerializer):
+    """Serializer for user with their assigned roles."""
+
+    roles = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "is_owner",
+            "is_active",
+            "roles",
+            "permissions",
+        )
+
+    def get_roles(self, obj):
+        user_roles = obj.user_roles.select_related("role")
+        return RoleSerializer([ur.role for ur in user_roles], many=True).data
+
+    def get_permissions(self, obj):
+        return list(obj.get_permissions())

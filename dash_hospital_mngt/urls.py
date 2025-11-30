@@ -39,6 +39,12 @@ urlpatterns = [
     path("api/clinic/", include("apps.api.clinic_urls")),
     # Staff API
     path("api/staff/", include("apps.api.staff_urls")),
+    # Roles API
+    path("api/roles/", include("apps.api.role_urls")),
+    # Policies API
+    path("api/policies/", include("apps.api.policy_urls")),
+    # Services API
+    path("api/services/", include("apps.api.service_urls")),
     path("dashboard/", include("apps.dashboard.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
