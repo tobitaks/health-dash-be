@@ -14,11 +14,29 @@ class PatientSerializer(serializers.ModelSerializer):
             "id",
             "patient_id",
             "first_name",
+            "middle_name",
             "last_name",
             "date_of_birth",
             "gender",
+            "civil_status",
             "phone",
             "status",
+            # Contact Information
+            "email",
+            "address_street",
+            "address_city",
+            "address_province",
+            "address_zip",
+            # Emergency Contact
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "emergency_contact_relationship",
+            # Medical Information
+            "blood_type",
+            "allergies",
+            "medical_conditions",
+            "current_medications",
+            # Timestamps
             "created_at",
             "updated_at",
         )
@@ -30,7 +48,32 @@ class PatientCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Patient
-        fields = ("first_name", "last_name", "date_of_birth", "gender", "phone", "status")
+        fields = (
+            # Basic Info (required for create)
+            "first_name",
+            "middle_name",
+            "last_name",
+            "date_of_birth",
+            "gender",
+            "civil_status",
+            "phone",
+            "status",
+            # Contact Information (optional)
+            "email",
+            "address_street",
+            "address_city",
+            "address_province",
+            "address_zip",
+            # Emergency Contact (optional)
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "emergency_contact_relationship",
+            # Medical Information (optional)
+            "blood_type",
+            "allergies",
+            "medical_conditions",
+            "current_medications",
+        )
 
     def validate_date_of_birth(self, value):
         if value > date.today():
