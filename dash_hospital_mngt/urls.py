@@ -35,6 +35,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Custom Auth API for Vue frontend
     path("api/auth/", include("apps.api.auth_urls")),
+    # Clinic API
+    path("api/clinic/", include("apps.api.clinic_urls")),
     path("dashboard/", include("apps.dashboard.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
