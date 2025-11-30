@@ -9,7 +9,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Service
-        fields = ("id", "name", "code", "price", "is_active", "created_at", "updated_at")
+        fields = ("id", "name", "code", "price", "duration_minutes", "is_active", "created_at", "updated_at")
         read_only_fields = ("id", "created_at", "updated_at")
 
 
@@ -18,7 +18,7 @@ class ServiceCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Service
-        fields = ("name", "code", "price", "is_active")
+        fields = ("name", "code", "price", "duration_minutes", "is_active")
 
     def validate_code(self, value):
         """Ensure code is unique within the clinic."""
