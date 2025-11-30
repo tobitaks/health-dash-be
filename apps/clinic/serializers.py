@@ -14,10 +14,8 @@ class ClinicSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "description",
             "email",
             "phone",
-            "mobile",
             "website",
             "address_street",
             "address_city",
@@ -25,7 +23,6 @@ class ClinicSerializer(serializers.ModelSerializer):
             "address_postal_code",
             "address_country",
             "full_address",
-            "tax_id",
             "business_hours",
             "logo",
             "timezone",

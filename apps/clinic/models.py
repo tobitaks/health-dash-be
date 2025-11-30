@@ -9,12 +9,10 @@ class Clinic(BaseModel):
     """
 
     name = models.CharField(max_length=200)
-    description = models.TextField(blank=True, null=True)
 
     # Contact Information
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
-    mobile = models.CharField(max_length=20, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
 
     # Address
@@ -23,9 +21,6 @@ class Clinic(BaseModel):
     address_region = models.CharField(max_length=100, blank=True, null=True)
     address_postal_code = models.CharField(max_length=20, blank=True, null=True)
     address_country = models.CharField(max_length=100, default="Philippines")
-
-    # Business Details
-    tax_id = models.CharField(max_length=20, blank=True, null=True, help_text="TIN (Tax Identification Number)")
 
     # Business Hours (stored as JSON)
     business_hours = models.JSONField(default=dict, blank=True)
