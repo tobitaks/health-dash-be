@@ -94,12 +94,21 @@ class ConsultationListCreateView(APIView):
         if serializer.is_valid():
             # Generate consultation_id
             consultation_id = generate_consultation_id(clinic)
-            consultation = serializer.save(
-                clinic=clinic,
-                consultation_id=consultation_id,
-                created_by=request.user,
-                status="draft",
-            )
+
+            # Auto-set date and time to now if not provided
+            now = datetime.now()
+            save_kwargs = {
+                "clinic": clinic,
+                "consultation_id": consultation_id,
+                "created_by": request.user,
+                "status": "draft",
+            }
+            if not serializer.validated_data.get("consultation_date"):
+                save_kwargs["consultation_date"] = now.date()
+            if not serializer.validated_data.get("consultation_time"):
+                save_kwargs["consultation_time"] = now.time()
+
+            consultation = serializer.save(**save_kwargs)
             return Response(
                 {
                     "success": True,

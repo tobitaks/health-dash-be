@@ -88,6 +88,7 @@ PROJECT_APPS = [
     "apps.appointments.apps.AppointmentsConfig",
     "apps.consultations.apps.ConsultationsConfig",
     "apps.medicines.apps.MedicinesConfig",
+    "apps.prescriptions.apps.PrescriptionsConfig",
     "apps.utils",
     "apps.web",
     "apps.chat",

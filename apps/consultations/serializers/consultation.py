@@ -45,9 +45,13 @@ class ConsultationSerializer(serializers.ModelSerializer):
             "soap_objective",
             "soap_assessment",
             "soap_plan",
+            # Structured Diagnosis
+            "primary_diagnosis",
+            "secondary_diagnoses",
+            "differential_diagnoses",
+            # Physical Examination
+            "physical_exam",
             # Additional Information
-            "physical_exam_notes",
-            "diagnosis",
             "follow_up_date",
             "follow_up_notes",
             # Timestamps
@@ -71,6 +75,12 @@ class ConsultationSerializer(serializers.ModelSerializer):
 
 class ConsultationCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating consultations (minimal fields)."""
+
+    # Date and time are optional - will default to now if not provided
+    consultation_date = serializers.DateField(required=False)
+    consultation_time = serializers.TimeField(required=False)
+    # Chief complaint is optional - can be added later in detail view
+    chief_complaint = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Consultation
@@ -129,9 +139,13 @@ class ConsultationUpdateSerializer(serializers.ModelSerializer):
             "soap_objective",
             "soap_assessment",
             "soap_plan",
+            # Structured Diagnosis
+            "primary_diagnosis",
+            "secondary_diagnoses",
+            "differential_diagnoses",
+            # Physical Examination
+            "physical_exam",
             # Additional Information
-            "physical_exam_notes",
-            "diagnosis",
             "follow_up_date",
             "follow_up_notes",
         )
@@ -150,4 +164,28 @@ class ConsultationUpdateSerializer(serializers.ModelSerializer):
         clinic = self.context["request"].user.clinic
         if value.clinic != clinic:
             raise serializers.ValidationError(_("Appointment does not belong to your clinic."))
+        return value
+
+    def validate_secondary_diagnoses(self, value):
+        """Ensure secondary_diagnoses is a list of strings."""
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError(_("Secondary diagnoses must be a list."))
+        return value
+
+    def validate_differential_diagnoses(self, value):
+        """Ensure differential_diagnoses is a list of strings."""
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError(_("Differential diagnoses must be a list."))
+        return value
+
+    def validate_physical_exam(self, value):
+        """Ensure physical_exam is a dict."""
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise serializers.ValidationError(_("Physical exam must be an object."))
         return value

@@ -109,9 +109,32 @@ class Consultation(BaseModel):
     soap_assessment = models.TextField(blank=True, default="")
     soap_plan = models.TextField(blank=True, default="")
 
+    # Structured Diagnosis (part of Assessment)
+    primary_diagnosis = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="Primary/working diagnosis",
+    )
+    secondary_diagnoses = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of secondary diagnoses",
+    )
+    differential_diagnoses = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of differential diagnoses to consider",
+    )
+
+    # Physical Examination (structured by body system)
+    physical_exam = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Physical exam findings by system: general, heent, neck, chest, cvs, abdomen, extremities, neuro",
+    )
+
     # Additional Information
-    physical_exam_notes = models.TextField(blank=True, default="")
-    diagnosis = models.CharField(max_length=500, blank=True, default="")
     follow_up_date = models.DateField(null=True, blank=True)
     follow_up_notes = models.TextField(blank=True, default="")
 
