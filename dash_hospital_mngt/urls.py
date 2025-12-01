@@ -60,6 +60,10 @@ urlpatterns = [
     path("api/medicines/", include("apps.api.medicine_urls")),
     # Prescriptions API
     path("api/prescriptions/", include("apps.api.prescription_urls")),
+    # Lab Orders API
+    path("api/lab-orders/", include("apps.api.lab_order_urls")),
+    # Billing/Invoices API
+    path("api/invoices/", include("apps.api.billing_urls")),
     path("dashboard/", include("apps.dashboard.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),

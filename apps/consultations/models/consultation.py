@@ -138,6 +138,19 @@ class Consultation(BaseModel):
     follow_up_date = models.DateField(null=True, blank=True)
     follow_up_notes = models.TextField(blank=True, default="")
 
+    # Audio Transcription
+    audio_file = models.FileField(
+        upload_to="consultations/audio/",
+        null=True,
+        blank=True,
+        help_text="Audio recording of the consultation",
+    )
+    transcript = models.TextField(
+        blank=True,
+        default="",
+        help_text="Transcribed text from audio recording",
+    )
+
     class Meta:
         unique_together = ["clinic", "consultation_id"]
         ordering = ["-consultation_date", "-consultation_time"]

@@ -109,20 +109,25 @@ class ConsultationCreateSerializer(serializers.ModelSerializer):
         return value
 
 
-class ConsultationUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating consultations (all editable fields)."""
+# =============================================================================
+# Section-Specific Update Serializers
+# =============================================================================
+
+
+class ConsultationBasicUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating basic consultation info."""
+
+    class Meta:
+        model = Consultation
+        fields = ("chief_complaint", "consultation_date", "consultation_time", "status")
+
+
+class ConsultationVitalsUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating vital signs."""
 
     class Meta:
         model = Consultation
         fields = (
-            # Basic Information (editable)
-            "patient",
-            "appointment",
-            "consultation_date",
-            "consultation_time",
-            "status",
-            "chief_complaint",
-            # Vital Signs
             "bp_systolic",
             "bp_diastolic",
             "temperature",
@@ -134,37 +139,23 @@ class ConsultationUpdateSerializer(serializers.ModelSerializer):
             "heart_rate",
             "respiratory_rate",
             "oxygen_saturation",
-            # SOAP Notes
-            "soap_subjective",
-            "soap_objective",
-            "soap_assessment",
-            "soap_plan",
-            # Structured Diagnosis
-            "primary_diagnosis",
-            "secondary_diagnoses",
-            "differential_diagnoses",
-            # Physical Examination
-            "physical_exam",
-            # Additional Information
-            "follow_up_date",
-            "follow_up_notes",
         )
 
-    def validate_patient(self, value):
-        """Ensure patient belongs to the same clinic."""
-        clinic = self.context["request"].user.clinic
-        if value.clinic != clinic:
-            raise serializers.ValidationError(_("Patient does not belong to your clinic."))
-        return value
 
-    def validate_appointment(self, value):
-        """Ensure appointment belongs to the same clinic."""
-        if value is None:
-            return value
-        clinic = self.context["request"].user.clinic
-        if value.clinic != clinic:
-            raise serializers.ValidationError(_("Appointment does not belong to your clinic."))
-        return value
+class ConsultationSOAPUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating SOAP notes."""
+
+    class Meta:
+        model = Consultation
+        fields = ("soap_subjective", "soap_objective", "soap_assessment", "soap_plan")
+
+
+class ConsultationDiagnosisUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating diagnosis fields."""
+
+    class Meta:
+        model = Consultation
+        fields = ("primary_diagnosis", "secondary_diagnoses", "differential_diagnoses")
 
     def validate_secondary_diagnoses(self, value):
         """Ensure secondary_diagnoses is a list of strings."""
@@ -182,6 +173,14 @@ class ConsultationUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("Differential diagnoses must be a list."))
         return value
 
+
+class ConsultationPhysicalExamUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating physical examination."""
+
+    class Meta:
+        model = Consultation
+        fields = ("physical_exam",)
+
     def validate_physical_exam(self, value):
         """Ensure physical_exam is a dict."""
         if value is None:
@@ -189,3 +188,11 @@ class ConsultationUpdateSerializer(serializers.ModelSerializer):
         if not isinstance(value, dict):
             raise serializers.ValidationError(_("Physical exam must be an object."))
         return value
+
+
+class ConsultationFollowUpUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating follow-up information."""
+
+    class Meta:
+        model = Consultation
+        fields = ("follow_up_date", "follow_up_notes")

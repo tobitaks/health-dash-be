@@ -17,9 +17,14 @@ from rest_framework.views import APIView
 
 from apps.consultations.models import Consultation
 from apps.consultations.serializers import (
+    ConsultationBasicUpdateSerializer,
     ConsultationCreateSerializer,
+    ConsultationDiagnosisUpdateSerializer,
+    ConsultationFollowUpUpdateSerializer,
+    ConsultationPhysicalExamUpdateSerializer,
     ConsultationSerializer,
-    ConsultationUpdateSerializer,
+    ConsultationSOAPUpdateSerializer,
+    ConsultationVitalsUpdateSerializer,
 )
 from apps.consultations.services import build_soap_context, generate_soap_with_ai
 
@@ -127,7 +132,6 @@ class ConsultationListCreateView(APIView):
 class ConsultationDetailView(APIView):
     """
     GET: Get consultation details.
-    PUT: Update a consultation.
     DELETE: Delete a consultation.
     """
 
@@ -150,33 +154,6 @@ class ConsultationDetailView(APIView):
                 "consultation": ConsultationSerializer(consultation).data,
             },
             status=status.HTTP_200_OK,
-        )
-
-    def put(self, request, pk):
-        """Update a consultation."""
-        consultation = self.get_object(pk, request)
-
-        serializer = ConsultationUpdateSerializer(
-            consultation,
-            data=request.data,
-            partial=True,  # Allow partial updates
-            context={"request": request},
-        )
-
-        if serializer.is_valid():
-            consultation = serializer.save()
-            return Response(
-                {
-                    "success": True,
-                    "consultation": ConsultationSerializer(consultation).data,
-                    "message": _("Consultation updated successfully"),
-                },
-                status=status.HTTP_200_OK,
-            )
-
-        return Response(
-            {"success": False, "errors": serializer.errors},
-            status=status.HTTP_400_BAD_REQUEST,
         )
 
     def delete(self, request, pk):
@@ -274,3 +251,86 @@ class GenerateSOAPView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+# =============================================================================
+# Section-Specific Update Views
+# =============================================================================
+
+
+class ConsultationSectionUpdateMixin:
+    """Base mixin for section-specific updates."""
+
+    serializer_class = None  # Override in subclass
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk, request):
+        """Get consultation by ID, ensuring it belongs to user's clinic."""
+        return get_object_or_404(
+            Consultation.objects.select_related("patient", "appointment", "created_by"),
+            pk=pk,
+            clinic=request.user.clinic,
+        )
+
+    def patch(self, request, pk):
+        """Update a consultation section."""
+        consultation = self.get_object(pk, request)
+
+        serializer = self.serializer_class(
+            consultation,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+
+        if serializer.is_valid():
+            consultation = serializer.save()
+            return Response(
+                {
+                    "success": True,
+                    "consultation": ConsultationSerializer(consultation).data,
+                    "message": _("Consultation updated successfully"),
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {"success": False, "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class UpdateBasicView(ConsultationSectionUpdateMixin, APIView):
+    """PATCH: Update basic consultation info (chief complaint, date, time, status)."""
+
+    serializer_class = ConsultationBasicUpdateSerializer
+
+
+class UpdateVitalsView(ConsultationSectionUpdateMixin, APIView):
+    """PATCH: Update vital signs."""
+
+    serializer_class = ConsultationVitalsUpdateSerializer
+
+
+class UpdateSOAPView(ConsultationSectionUpdateMixin, APIView):
+    """PATCH: Update SOAP notes."""
+
+    serializer_class = ConsultationSOAPUpdateSerializer
+
+
+class UpdateDiagnosisView(ConsultationSectionUpdateMixin, APIView):
+    """PATCH: Update diagnosis fields."""
+
+    serializer_class = ConsultationDiagnosisUpdateSerializer
+
+
+class UpdatePhysicalExamView(ConsultationSectionUpdateMixin, APIView):
+    """PATCH: Update physical examination."""
+
+    serializer_class = ConsultationPhysicalExamUpdateSerializer
+
+
+class UpdateFollowUpView(ConsultationSectionUpdateMixin, APIView):
+    """PATCH: Update follow-up information."""
+
+    serializer_class = ConsultationFollowUpUpdateSerializer
