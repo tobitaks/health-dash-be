@@ -86,6 +86,7 @@ PROJECT_APPS = [
     "apps.clinic.apps.ClinicConfig",
     "apps.patients.apps.PatientsConfig",
     "apps.appointments.apps.AppointmentsConfig",
+    "apps.consultations.apps.ConsultationsConfig",
     "apps.utils",
     "apps.web",
     "apps.chat",
@@ -520,6 +521,7 @@ if "test" in sys.argv:
 
 # AI Chat Setup
 OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 # LiteLLM models
 # See:
 # * https://docs.litellm.ai/docs/providers
