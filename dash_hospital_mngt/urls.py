@@ -56,6 +56,8 @@ urlpatterns = [
     path("api/appointments/", include("apps.api.appointment_urls")),
     # Consultations API
     path("api/consultations/", include("apps.api.consultation_urls")),
+    # Medicines API
+    path("api/medicines/", include("apps.api.medicine_urls")),
     path("dashboard/", include("apps.dashboard.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
