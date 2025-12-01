@@ -54,6 +54,7 @@ dependencies = [
     "django-waffle",
     "djangorestframework",
     "djangorestframework-api-key",
+    "djangorestframework-simplejwt>=5.5.1",
     "drf-spectacular",
     "httpx>=0.28.1",
     "litellm<1.77.2",
