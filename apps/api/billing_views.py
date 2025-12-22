@@ -437,3 +437,58 @@ class InvoiceCancelView(APIView):
             {"success": False, "errors": serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class UnbilledConsultationsView(APIView):
+    """
+    GET: List all consultations that don't have an invoice.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Get consultations without invoices."""
+        clinic = request.user.clinic
+        if not clinic:
+            return Response(
+                {"success": False, "message": _("User has no clinic")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get consultations that don't have an invoice
+        consultations = Consultation.objects.filter(
+            clinic=clinic,
+        ).exclude(
+            invoice__isnull=False
+        ).select_related(
+            "patient", "appointment__service"
+        ).order_by("-consultation_date", "-consultation_time")
+
+        # Build response data
+        data = []
+        for consultation in consultations:
+            service_name = None
+            service_price = None
+            if consultation.appointment and consultation.appointment.service:
+                service_name = consultation.appointment.service.name
+                service_price = float(consultation.appointment.service.price)
+
+            data.append({
+                "id": consultation.id,
+                "consultation_id": consultation.consultation_id,
+                "consultation_date": consultation.consultation_date,
+                "consultation_time": str(consultation.consultation_time) if consultation.consultation_time else None,
+                "patient_id": consultation.patient_id,
+                "patient_name": consultation.patient.full_name if consultation.patient else None,
+                "service_name": service_name,
+                "service_price": service_price,
+                "status": consultation.status,
+            })
+
+        return Response(
+            {
+                "success": True,
+                "consultations": data,
+            },
+            status=status.HTTP_200_OK,
+        )

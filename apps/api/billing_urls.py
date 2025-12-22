@@ -11,12 +11,14 @@ from .billing_views import (
     InvoicePayView,
     InvoiceFinalizeView,
     InvoiceCancelView,
+    UnbilledConsultationsView,
 )
 
 app_name = "billing"
 
 urlpatterns = [
     path("", InvoiceListCreateView.as_view(), name="list-create"),
+    path("unbilled-consultations/", UnbilledConsultationsView.as_view(), name="unbilled-consultations"),
     path("<int:pk>/", InvoiceDetailView.as_view(), name="detail"),
     path("<int:pk>/pay/", InvoicePayView.as_view(), name="pay"),
     path("<int:pk>/finalize/", InvoiceFinalizeView.as_view(), name="finalize"),
