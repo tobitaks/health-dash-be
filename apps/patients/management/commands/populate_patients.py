@@ -240,7 +240,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING(f"Patient {patient_id} already exists, skipping."))
                 continue
 
-            patient = self._create_patient(clinic, patient_id)
+            self._create_patient(clinic, patient_id)
             created_count += 1
 
             if created_count % 5 == 0:
@@ -300,10 +300,7 @@ class Command(BaseCommand):
 
         # Civil status based on age
         age = (date.today() - date_of_birth).days // 365
-        if age < 18:
-            civil_status = "Single"
-        else:
-            civil_status = random.choice(["Single", "Married", "Married", "Widowed", "Separated"])
+        civil_status = "Single" if age < 18 else random.choice(["Single", "Married", "Married", "Widowed", "Separated"])
 
         return Patient.objects.create(
             clinic=clinic,

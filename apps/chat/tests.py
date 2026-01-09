@@ -4,7 +4,7 @@ Unit tests for chat serializers.
 
 from django.test import TestCase
 
-from apps.chat.models import Chat, ChatMessage, ChatTypes, MessageTypes
+from apps.chat.models import Chat, ChatTypes, MessageTypes
 from apps.chat.serializers import ChatMessageSerializer, ChatSerializer
 from apps.users.models import CustomUser
 
@@ -96,9 +96,7 @@ class ChatMessageSerializerSanitizationTestCase(ChatSerializerTestCase):
         }
         serializer = ChatMessageSerializer(data=data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
-        self.assertEqual(
-            serializer.validated_data["content"], "Hello, how can I help you today?"
-        )
+        self.assertEqual(serializer.validated_data["content"], "Hello, how can I help you today?")
 
     def test_content_handles_multiline_text(self):
         """Multiline content should be handled correctly."""
@@ -156,9 +154,7 @@ class ChatSerializerSanitizationTestCase(ChatSerializerTestCase):
         data = {"name": "My Conversation About Health"}
         serializer = ChatSerializer(self.chat, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
-        self.assertEqual(
-            serializer.validated_data["name"], "My Conversation About Health"
-        )
+        self.assertEqual(serializer.validated_data["name"], "My Conversation About Health")
 
     def test_name_handles_special_characters(self):
         """Special characters in chat name should be preserved."""

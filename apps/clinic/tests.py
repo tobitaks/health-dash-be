@@ -190,12 +190,8 @@ class ServiceModelTestCase(TestCase):
 
     def test_service_ordering(self):
         """Services should be ordered by name."""
-        Service.objects.create(
-            clinic=self.clinic, name="Zebra Service", code="ZS001", price=Decimal("100.00")
-        )
-        Service.objects.create(
-            clinic=self.clinic, name="Alpha Service", code="AS001", price=Decimal("100.00")
-        )
+        Service.objects.create(clinic=self.clinic, name="Zebra Service", code="ZS001", price=Decimal("100.00"))
+        Service.objects.create(clinic=self.clinic, name="Alpha Service", code="AS001", price=Decimal("100.00"))
         services = list(Service.objects.filter(clinic=self.clinic))
         self.assertEqual(services[0].name, "Alpha Service")
         self.assertEqual(services[1].name, "General Consultation")
@@ -381,16 +377,12 @@ class ServiceCreateUpdateSerializerTestCase(TestCase):
 
     def test_valid_data_is_valid(self):
         """Serializer should validate with valid data."""
-        serializer = ServiceCreateUpdateSerializer(
-            data=self.valid_data, context={"request": self.get_mock_request()}
-        )
+        serializer = ServiceCreateUpdateSerializer(data=self.valid_data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_missing_required_fields(self):
         """Serializer should fail without required fields."""
-        serializer = ServiceCreateUpdateSerializer(
-            data={}, context={"request": self.get_mock_request()}
-        )
+        serializer = ServiceCreateUpdateSerializer(data={}, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("name", serializer.errors)
         self.assertIn("code", serializer.errors)
@@ -400,9 +392,7 @@ class ServiceCreateUpdateSerializerTestCase(TestCase):
         """Code should be normalized to uppercase."""
         data = self.valid_data.copy()
         data["code"] = "lowercase"
-        serializer = ServiceCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = ServiceCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(serializer.validated_data["code"], "LOWERCASE")
 
@@ -414,9 +404,7 @@ class ServiceCreateUpdateSerializerTestCase(TestCase):
             code="NS001",
             price=Decimal("200.00"),
         )
-        serializer = ServiceCreateUpdateSerializer(
-            data=self.valid_data, context={"request": self.get_mock_request()}
-        )
+        serializer = ServiceCreateUpdateSerializer(data=self.valid_data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("code", serializer.errors)
 
@@ -430,9 +418,7 @@ class ServiceCreateUpdateSerializerTestCase(TestCase):
         )
         data = self.valid_data.copy()
         data["code"] = "ns001"  # lowercase version
-        serializer = ServiceCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = ServiceCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("code", serializer.errors)
 
@@ -445,9 +431,7 @@ class ServiceCreateUpdateSerializerTestCase(TestCase):
             price=Decimal("200.00"),
         )
         data = {"name": "Updated Name", "code": "ORIG001", "price": "250.00"}
-        serializer = ServiceCreateUpdateSerializer(
-            service, data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = ServiceCreateUpdateSerializer(service, data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_partial_update(self):
@@ -472,9 +456,7 @@ class ServiceCreateUpdateSerializerTestCase(TestCase):
 
     def test_is_active_default(self):
         """is_active should default to True if not provided."""
-        serializer = ServiceCreateUpdateSerializer(
-            data=self.valid_data, context={"request": self.get_mock_request()}
-        )
+        serializer = ServiceCreateUpdateSerializer(data=self.valid_data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         service = serializer.save(clinic=self.clinic)
         self.assertTrue(service.is_active)

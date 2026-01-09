@@ -7,7 +7,7 @@ from decimal import Decimal
 
 from django.db import IntegrityError
 from django.test import RequestFactory, TestCase
-from django.utils import timezone
+from rest_framework import serializers
 from rest_framework.request import Request
 
 from apps.billing.models import Invoice, InvoiceItem
@@ -19,7 +19,6 @@ from apps.billing.serializers import (
     InvoicePaySerializer,
     InvoiceSerializer,
 )
-from apps.billing.serializers.invoice import InvoiceItemCreateSerializer
 from apps.clinic.models import Clinic, Service
 from apps.consultations.models import Consultation
 from apps.patients.models import Patient
@@ -637,16 +636,12 @@ class InvoiceCreateUpdateSerializerTestCase(TestCase):
 
     def test_valid_data_is_valid(self):
         """Serializer should validate with valid data."""
-        serializer = InvoiceCreateUpdateSerializer(
-            data=self.valid_data, context={"request": self.get_mock_request()}
-        )
+        serializer = InvoiceCreateUpdateSerializer(data=self.valid_data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_create_invoice_with_items(self):
         """Serializer should create invoice with items."""
-        serializer = InvoiceCreateUpdateSerializer(
-            data=self.valid_data, context={"request": self.get_mock_request()}
-        )
+        serializer = InvoiceCreateUpdateSerializer(data=self.valid_data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         invoice = serializer.save()
 
@@ -657,9 +652,7 @@ class InvoiceCreateUpdateSerializerTestCase(TestCase):
 
     def test_create_generates_invoice_id(self):
         """Serializer should generate invoice_id."""
-        serializer = InvoiceCreateUpdateSerializer(
-            data=self.valid_data, context={"request": self.get_mock_request()}
-        )
+        serializer = InvoiceCreateUpdateSerializer(data=self.valid_data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         invoice = serializer.save()
 
@@ -672,9 +665,7 @@ class InvoiceCreateUpdateSerializerTestCase(TestCase):
             {"description": "Service 1", "quantity": 2, "unit_price": "100.00"},
             {"description": "Service 2", "quantity": 1, "unit_price": "300.00"},
         ]
-        serializer = InvoiceCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = InvoiceCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         invoice = serializer.save()
 
@@ -689,9 +680,7 @@ class InvoiceCreateUpdateSerializerTestCase(TestCase):
         data["items"] = [
             {"description": "Service", "quantity": 1, "unit_price": "1000.00"},
         ]
-        serializer = InvoiceCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = InvoiceCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         invoice = serializer.save()
 
@@ -710,9 +699,7 @@ class InvoiceCreateUpdateSerializerTestCase(TestCase):
                 "unit_price": "500.00",
             }
         ]
-        serializer = InvoiceCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = InvoiceCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         invoice = serializer.save()
 
@@ -815,9 +802,7 @@ class InvoicePaySerializerTestCase(TestCase):
 
     def test_pay_with_reference(self):
         """Should record payment reference."""
-        serializer = InvoicePaySerializer(
-            self.invoice, data={"payment_reference": "REC-001"}
-        )
+        serializer = InvoicePaySerializer(self.invoice, data={"payment_reference": "REC-001"})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         paid = serializer.save()
 
@@ -830,7 +815,7 @@ class InvoicePaySerializerTestCase(TestCase):
 
         serializer = InvoicePaySerializer(self.invoice, data={})
         self.assertTrue(serializer.is_valid())
-        with self.assertRaises(Exception):
+        with self.assertRaises(serializers.ValidationError):
             serializer.save()
 
     def test_cannot_pay_cancelled_invoice(self):
@@ -840,7 +825,7 @@ class InvoicePaySerializerTestCase(TestCase):
 
         serializer = InvoicePaySerializer(self.invoice, data={})
         self.assertTrue(serializer.is_valid())
-        with self.assertRaises(Exception):
+        with self.assertRaises(serializers.ValidationError):
             serializer.save()
 
 
@@ -898,7 +883,7 @@ class InvoiceFinalizeSerializerTestCase(TestCase):
 
         serializer = InvoiceFinalizeSerializer(self.invoice, data={})
         self.assertTrue(serializer.is_valid())
-        with self.assertRaises(Exception):
+        with self.assertRaises(serializers.ValidationError):
             serializer.save()
 
     def test_cannot_finalize_without_items(self):
@@ -907,7 +892,7 @@ class InvoiceFinalizeSerializerTestCase(TestCase):
 
         serializer = InvoiceFinalizeSerializer(self.invoice, data={})
         self.assertTrue(serializer.is_valid())
-        with self.assertRaises(Exception):
+        with self.assertRaises(serializers.ValidationError):
             serializer.save()
 
 
@@ -969,7 +954,7 @@ class InvoiceCancelSerializerTestCase(TestCase):
 
         serializer = InvoiceCancelSerializer(self.invoice, data={})
         self.assertTrue(serializer.is_valid())
-        with self.assertRaises(Exception):
+        with self.assertRaises(serializers.ValidationError):
             serializer.save()
 
     def test_cannot_cancel_already_cancelled(self):
@@ -979,5 +964,5 @@ class InvoiceCancelSerializerTestCase(TestCase):
 
         serializer = InvoiceCancelSerializer(self.invoice, data={})
         self.assertTrue(serializer.is_valid())
-        with self.assertRaises(Exception):
+        with self.assertRaises(serializers.ValidationError):
             serializer.save()

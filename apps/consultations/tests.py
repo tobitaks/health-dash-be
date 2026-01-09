@@ -66,9 +66,7 @@ class ConsultationCreateSerializerSanitizationTestCase(ConsultationSerializerTes
             "patient": self.patient.id,
             "chief_complaint": "<script>alert('xss')</script>Headache",
         }
-        serializer = ConsultationCreateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = ConsultationCreateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(serializer.validated_data["chief_complaint"], "Headache")
 
@@ -78,9 +76,7 @@ class ConsultationCreateSerializerSanitizationTestCase(ConsultationSerializerTes
             "patient": self.patient.id,
             "chief_complaint": '<div onclick="evil()">Fever</div>',
         }
-        serializer = ConsultationCreateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = ConsultationCreateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertNotIn("onclick", serializer.validated_data["chief_complaint"])
         self.assertIn("Fever", serializer.validated_data["chief_complaint"])
@@ -91,9 +87,7 @@ class ConsultationCreateSerializerSanitizationTestCase(ConsultationSerializerTes
             "patient": self.patient.id,
             "chief_complaint": "Patient reports headache for 3 days",
         }
-        serializer = ConsultationCreateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = ConsultationCreateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(
             serializer.validated_data["chief_complaint"],
@@ -107,18 +101,14 @@ class ConsultationBasicUpdateSerializerSanitizationTestCase(ConsultationSerializ
     def test_chief_complaint_sanitizes_script_tags(self):
         """Script tags in chief_complaint should be removed."""
         data = {"chief_complaint": "<script>alert('xss')</script>Back pain"}
-        serializer = ConsultationBasicUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        serializer = ConsultationBasicUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(serializer.validated_data["chief_complaint"], "Back pain")
 
     def test_chief_complaint_sanitizes_html_tags(self):
         """HTML tags in chief_complaint should be removed."""
         data = {"chief_complaint": "<b>Severe</b> <i>headache</i>"}
-        serializer = ConsultationBasicUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        serializer = ConsultationBasicUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(serializer.validated_data["chief_complaint"], "Severe headache")
 
@@ -129,42 +119,30 @@ class ConsultationSOAPUpdateSerializerSanitizationTestCase(ConsultationSerialize
     def test_soap_subjective_sanitizes_script_tags(self):
         """Script tags in soap_subjective should be removed."""
         data = {"soap_subjective": "<script>evil()</script>Patient reports pain"}
-        serializer = ConsultationSOAPUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        serializer = ConsultationSOAPUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
-        self.assertEqual(
-            serializer.validated_data["soap_subjective"], "Patient reports pain"
-        )
+        self.assertEqual(serializer.validated_data["soap_subjective"], "Patient reports pain")
 
     def test_soap_objective_sanitizes_script_tags(self):
         """Script tags in soap_objective should be removed."""
         data = {"soap_objective": "<script>evil()</script>Vitals normal"}
-        serializer = ConsultationSOAPUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        serializer = ConsultationSOAPUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(serializer.validated_data["soap_objective"], "Vitals normal")
 
     def test_soap_assessment_sanitizes_script_tags(self):
         """Script tags in soap_assessment should be removed."""
         data = {"soap_assessment": "<script>evil()</script>Migraine"}
-        serializer = ConsultationSOAPUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        serializer = ConsultationSOAPUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(serializer.validated_data["soap_assessment"], "Migraine")
 
     def test_soap_plan_sanitizes_script_tags(self):
         """Script tags in soap_plan should be removed."""
         data = {"soap_plan": "<script>evil()</script>Prescribe medication"}
-        serializer = ConsultationSOAPUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        serializer = ConsultationSOAPUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
-        self.assertEqual(
-            serializer.validated_data["soap_plan"], "Prescribe medication"
-        )
+        self.assertEqual(serializer.validated_data["soap_plan"], "Prescribe medication")
 
     def test_all_soap_fields_sanitized_together(self):
         """All SOAP fields should be sanitized when updated together."""
@@ -174,13 +152,9 @@ class ConsultationSOAPUpdateSerializerSanitizationTestCase(ConsultationSerialize
             "soap_assessment": "<a href='javascript:x'>Assessment</a>",
             "soap_plan": "<div onclick='x'>Plan note</div>",
         }
-        serializer = ConsultationSOAPUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        serializer = ConsultationSOAPUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
-        self.assertEqual(
-            serializer.validated_data["soap_subjective"], "Subjective note"
-        )
+        self.assertEqual(serializer.validated_data["soap_subjective"], "Subjective note")
         self.assertNotIn("onerror", serializer.validated_data["soap_objective"])
         self.assertNotIn("javascript", serializer.validated_data["soap_assessment"])
         self.assertNotIn("onclick", serializer.validated_data["soap_plan"])
@@ -193,23 +167,15 @@ class ConsultationSOAPUpdateSerializerSanitizationTestCase(ConsultationSerialize
             "soap_assessment": "Tension headache",
             "soap_plan": "Rest, hydration, OTC pain relief",
         }
-        serializer = ConsultationSOAPUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        serializer = ConsultationSOAPUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(
             serializer.validated_data["soap_subjective"],
             "Patient complains of headache",
         )
-        self.assertEqual(
-            serializer.validated_data["soap_objective"], "BP: 120/80, Temp: 98.6F"
-        )
-        self.assertEqual(
-            serializer.validated_data["soap_assessment"], "Tension headache"
-        )
-        self.assertEqual(
-            serializer.validated_data["soap_plan"], "Rest, hydration, OTC pain relief"
-        )
+        self.assertEqual(serializer.validated_data["soap_objective"], "BP: 120/80, Temp: 98.6F")
+        self.assertEqual(serializer.validated_data["soap_assessment"], "Tension headache")
+        self.assertEqual(serializer.validated_data["soap_plan"], "Rest, hydration, OTC pain relief")
 
 
 class ConsultationFollowUpUpdateSerializerSanitizationTestCase(ConsultationSerializerTestCase):
@@ -218,22 +184,14 @@ class ConsultationFollowUpUpdateSerializerSanitizationTestCase(ConsultationSeria
     def test_follow_up_notes_sanitizes_script_tags(self):
         """Script tags in follow_up_notes should be removed."""
         data = {"follow_up_notes": "<script>evil()</script>Return in 2 weeks"}
-        serializer = ConsultationFollowUpUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        serializer = ConsultationFollowUpUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
-        self.assertEqual(
-            serializer.validated_data["follow_up_notes"], "Return in 2 weeks"
-        )
+        self.assertEqual(serializer.validated_data["follow_up_notes"], "Return in 2 weeks")
 
     def test_follow_up_notes_sanitizes_html_tags(self):
         """HTML tags in follow_up_notes should be removed."""
-        data = {
-            "follow_up_notes": "<b>Important:</b> Follow up in <i>one</i> week"
-        }
-        serializer = ConsultationFollowUpUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        data = {"follow_up_notes": "<b>Important:</b> Follow up in <i>one</i> week"}
+        serializer = ConsultationFollowUpUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(
             serializer.validated_data["follow_up_notes"],
@@ -243,9 +201,7 @@ class ConsultationFollowUpUpdateSerializerSanitizationTestCase(ConsultationSeria
     def test_follow_up_notes_preserves_plain_text(self):
         """Plain text follow_up_notes should remain unchanged."""
         data = {"follow_up_notes": "Schedule follow-up appointment in 2 weeks"}
-        serializer = ConsultationFollowUpUpdateSerializer(
-            self.consultation, data=data, partial=True
-        )
+        serializer = ConsultationFollowUpUpdateSerializer(self.consultation, data=data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(
             serializer.validated_data["follow_up_notes"],

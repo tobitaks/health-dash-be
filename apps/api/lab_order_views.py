@@ -383,7 +383,8 @@ class ConsultationLabOrdersView(APIView):
         """Create a lab order for a consultation."""
         clinic = request.user.clinic
 
-        consultation = get_object_or_404(Consultation, id=consultation_id, clinic=clinic)
+        # Validate consultation exists and belongs to clinic
+        get_object_or_404(Consultation, id=consultation_id, clinic=clinic)
 
         # Add consultation to request data
         data = request.data.copy()

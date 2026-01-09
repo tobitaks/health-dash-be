@@ -6,7 +6,6 @@ from datetime import date, timedelta
 
 from django.db import IntegrityError
 from django.test import TestCase
-from rest_framework import serializers
 
 from apps.clinic.models import Clinic
 from apps.patients.models import Patient
@@ -278,9 +277,7 @@ class PatientCreateUpdateSerializerTestCase(TestCase):
         data["medical_conditions"] = ["Diabetes", "Hypertension"]
         serializer = PatientCreateUpdateSerializer(data=data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
-        self.assertEqual(
-            serializer.validated_data["medical_conditions"], ["Diabetes", "Hypertension"]
-        )
+        self.assertEqual(serializer.validated_data["medical_conditions"], ["Diabetes", "Hypertension"])
 
     def test_update_patient(self):
         """Serializer should update existing patient."""
@@ -294,9 +291,7 @@ class PatientCreateUpdateSerializerTestCase(TestCase):
             phone="09171234567",
         )
         update_data = {"first_name": "Johnny", "phone": "09999999999"}
-        serializer = PatientCreateUpdateSerializer(
-            patient, data=update_data, partial=True
-        )
+        serializer = PatientCreateUpdateSerializer(patient, data=update_data, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         updated_patient = serializer.save()
         self.assertEqual(updated_patient.first_name, "Johnny")
@@ -310,9 +305,7 @@ class PatientCreateUpdateSerializerTestCase(TestCase):
             data = self.valid_data.copy()
             data["blood_type"] = blood_type
             serializer = PatientCreateUpdateSerializer(data=data)
-            self.assertTrue(
-                serializer.is_valid(), f"Blood type '{blood_type}' should be valid"
-            )
+            self.assertTrue(serializer.is_valid(), f"Blood type '{blood_type}' should be valid")
 
     def test_invalid_blood_type(self):
         """Invalid blood type should fail validation."""

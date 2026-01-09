@@ -378,9 +378,7 @@ class AppointmentCreateUpdateSerializerTestCase(TestCase):
     def test_missing_required_fields(self):
         """Serializer should fail without required fields."""
         data = {"notes": "Some notes"}
-        serializer = AppointmentCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = AppointmentCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("patient", serializer.errors)
         self.assertIn("date", serializer.errors)
@@ -390,9 +388,7 @@ class AppointmentCreateUpdateSerializerTestCase(TestCase):
         """Patient from different clinic should fail validation."""
         data = self.valid_data.copy()
         data["patient"] = self.patient_other_clinic.id
-        serializer = AppointmentCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = AppointmentCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("patient", serializer.errors)
         self.assertIn("clinic", str(serializer.errors["patient"][0]).lower())
@@ -401,9 +397,7 @@ class AppointmentCreateUpdateSerializerTestCase(TestCase):
         """Service from different clinic should fail validation."""
         data = self.valid_data.copy()
         data["service"] = self.service_other_clinic.id
-        serializer = AppointmentCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = AppointmentCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("service", serializer.errors)
         self.assertIn("clinic", str(serializer.errors["service"][0]).lower())
@@ -412,9 +406,7 @@ class AppointmentCreateUpdateSerializerTestCase(TestCase):
         """Service can be null."""
         data = self.valid_data.copy()
         data["service"] = None
-        serializer = AppointmentCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = AppointmentCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_date_in_past_invalid_for_new_appointment(self):
@@ -422,9 +414,7 @@ class AppointmentCreateUpdateSerializerTestCase(TestCase):
         past_date = date.today() - timedelta(days=1)
         data = self.valid_data.copy()
         data["date"] = past_date.isoformat()
-        serializer = AppointmentCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = AppointmentCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("date", serializer.errors)
         self.assertIn("past", str(serializer.errors["date"][0]).lower())
@@ -433,9 +423,7 @@ class AppointmentCreateUpdateSerializerTestCase(TestCase):
         """Date today should be valid for new appointments."""
         data = self.valid_data.copy()
         data["date"] = date.today().isoformat()
-        serializer = AppointmentCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = AppointmentCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_date_in_past_valid_for_existing_appointment(self):
@@ -464,9 +452,7 @@ class AppointmentCreateUpdateSerializerTestCase(TestCase):
         """Invalid status choice should fail validation."""
         data = self.valid_data.copy()
         data["status"] = "invalid-status"
-        serializer = AppointmentCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = AppointmentCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("status", serializer.errors)
 
@@ -483,12 +469,8 @@ class AppointmentCreateUpdateSerializerTestCase(TestCase):
         for status_choice in valid_statuses:
             data = self.valid_data.copy()
             data["status"] = status_choice
-            serializer = AppointmentCreateUpdateSerializer(
-                data=data, context={"request": self.get_mock_request()}
-            )
-            self.assertTrue(
-                serializer.is_valid(), f"Status '{status_choice}' should be valid"
-            )
+            serializer = AppointmentCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
+            self.assertTrue(serializer.is_valid(), f"Status '{status_choice}' should be valid")
 
     def test_partial_update(self):
         """Serializer should support partial updates."""
@@ -517,9 +499,7 @@ class AppointmentCreateUpdateSerializerTestCase(TestCase):
         """Duration minutes should be a positive integer."""
         data = self.valid_data.copy()
         data["duration_minutes"] = 60
-        serializer = AppointmentCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = AppointmentCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         self.assertEqual(serializer.validated_data["duration_minutes"], 60)
 
@@ -584,7 +564,8 @@ class GenerateAppointmentIdTestCase(TestCase):
     def test_appointment_id_per_clinic(self):
         """Each clinic should have its own sequence."""
         clinic2 = Clinic.objects.create(name="Second Clinic")
-        patient2 = Patient.objects.create(
+        # Create patient and service for clinic2 (needed for foreign key constraints)
+        Patient.objects.create(
             clinic=clinic2,
             patient_id="PT-2026-0001",
             first_name="Jane",
@@ -593,7 +574,7 @@ class GenerateAppointmentIdTestCase(TestCase):
             gender="Female",
             phone="09181234567",
         )
-        service2 = Service.objects.create(
+        Service.objects.create(
             clinic=clinic2,
             name="Checkup",
             code="CHK001",

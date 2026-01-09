@@ -85,7 +85,7 @@ class PrescriptionModelTestCase(TestCase):
                 clinic=self.clinic,
                 patient=self.patient,
                 created_by=self.user,
-                consultation_id=f"CONS-2026-{100+i:04d}",
+                consultation_id=f"CONS-2026-{100 + i:04d}",
                 consultation_date=date.today(),
                 consultation_time="10:00:00",
             )
@@ -93,7 +93,7 @@ class PrescriptionModelTestCase(TestCase):
                 clinic=self.clinic,
                 consultation=consultation,
                 patient=self.patient,
-                prescription_id=f"RX-2026-{100+i:04d}",
+                prescription_id=f"RX-2026-{100 + i:04d}",
                 prescription_date=date.today(),
                 status=status,
             )
@@ -251,9 +251,7 @@ class PrescriptionItemModelTestCase(TestCase):
 
     def test_display_name_property(self):
         """display_name should return formatted medicine name."""
-        self.assertEqual(
-            self.item.display_name, "Paracetamol (Biogesic) 500mg Tablet"
-        )
+        self.assertEqual(self.item.display_name, "Paracetamol (Biogesic) 500mg Tablet")
 
     def test_display_name_without_strength_form(self):
         """display_name should work without strength and form."""
@@ -598,9 +596,7 @@ class PrescriptionCreateUpdateSerializerTestCase(TestCase):
                 "quantity": 10,
             }
         ]
-        serializer = PrescriptionCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = PrescriptionCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         prescription = serializer.save()
 
@@ -649,9 +645,7 @@ class PrescriptionCreateUpdateSerializerTestCase(TestCase):
     def test_missing_required_fields(self):
         """Should fail without required fields."""
         data = {"notes": "Some notes"}
-        serializer = PrescriptionCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = PrescriptionCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("consultation", serializer.errors)
         self.assertIn("prescription_date", serializer.errors)

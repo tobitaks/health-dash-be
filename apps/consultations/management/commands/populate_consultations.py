@@ -199,7 +199,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING(f"Consultation {consultation_id} already exists, skipping."))
                 continue
 
-            consultation = self._create_consultation(
+            self._create_consultation(
                 clinic=clinic,
                 consultation_id=consultation_id,
                 patient=random.choice(patients),

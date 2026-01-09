@@ -1,3 +1,4 @@
+import contextlib
 from decimal import Decimal
 
 from rest_framework import serializers
@@ -123,10 +124,8 @@ class InvoiceCreateUpdateSerializer(serializers.ModelSerializer):
             if service_id:
                 from apps.clinic.models import Service
 
-                try:
+                with contextlib.suppress(Service.DoesNotExist):
                     item_data["service"] = Service.objects.get(id=service_id)
-                except Service.DoesNotExist:
-                    pass
             # Calculate amount
             quantity = item_data.get("quantity", 1)
             unit_price = item_data.get("unit_price", Decimal("0.00"))
@@ -158,10 +157,8 @@ class InvoiceCreateUpdateSerializer(serializers.ModelSerializer):
                 if service_id:
                     from apps.clinic.models import Service
 
-                    try:
+                    with contextlib.suppress(Service.DoesNotExist):
                         item_data["service"] = Service.objects.get(id=service_id)
-                    except Service.DoesNotExist:
-                        pass
                 # Calculate amount
                 quantity = item_data.get("quantity", 1)
                 unit_price = item_data.get("unit_price", Decimal("0.00"))

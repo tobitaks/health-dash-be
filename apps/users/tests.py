@@ -86,7 +86,7 @@ class CustomUserModelTestCase(TestCase):
         """gravatar_id should be MD5 hash of lowercase email."""
         import hashlib
 
-        expected = hashlib.md5("test@example.com".encode("utf-8")).hexdigest()
+        expected = hashlib.md5(b"test@example.com").hexdigest()
         self.assertEqual(self.user.gravatar_id, expected)
 
     def test_role_choices(self):
@@ -742,9 +742,7 @@ class StaffSerializerTestCase(TestCase):
             "first_name": "New",
             "last_name": "Staff",
         }
-        serializer = StaffCreateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = StaffCreateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_staff_create_serializer_creates_user(self):
@@ -755,9 +753,7 @@ class StaffSerializerTestCase(TestCase):
             "first_name": "New",
             "last_name": "Staff",
         }
-        serializer = StaffCreateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = StaffCreateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         user = serializer.save()
 
@@ -772,9 +768,7 @@ class StaffSerializerTestCase(TestCase):
             "email": "staff@example.com",  # Already exists
             "password": "newpass123",
         }
-        serializer = StaffCreateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = StaffCreateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("email", serializer.errors)
 
@@ -786,9 +780,7 @@ class StaffSerializerTestCase(TestCase):
             "last_name": "Name",
             "is_active": False,
         }
-        serializer = StaffUpdateSerializer(
-            self.staff, data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = StaffUpdateSerializer(self.staff, data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         updated = serializer.save()
 
@@ -917,9 +909,7 @@ class RoleSerializerTestCase(TestCase):
             "color": "#ff0000",
             "icon": "Star",
         }
-        serializer = RoleCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = RoleCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_role_create_serializer_creates_role(self):
@@ -928,9 +918,7 @@ class RoleSerializerTestCase(TestCase):
             "name": "New Role",
             "slug": "new-role",
         }
-        serializer = RoleCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = RoleCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         role = serializer.save()
 
@@ -944,9 +932,7 @@ class RoleSerializerTestCase(TestCase):
             "slug": "new-role",
             "policy_ids": [self.policy.id],
         }
-        serializer = RoleCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = RoleCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         role = serializer.save()
 
@@ -959,9 +945,7 @@ class RoleSerializerTestCase(TestCase):
             "name": "Another Doctor",
             "slug": "doctor",  # Already exists
         }
-        serializer = RoleCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = RoleCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("slug", serializer.errors)
 
@@ -972,9 +956,7 @@ class RoleSerializerTestCase(TestCase):
             "slug": "doctor",
             "description": "Updated description",
         }
-        serializer = RoleCreateUpdateSerializer(
-            self.role, data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = RoleCreateUpdateSerializer(self.role, data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         updated = serializer.save()
 
@@ -1012,9 +994,7 @@ class UserRoleSerializerTestCase(TestCase):
     def test_user_role_serializer_create(self):
         """UserRoleSerializer should create user role assignment."""
         data = {"role_id": self.role.id}
-        serializer = UserRoleSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = UserRoleSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         user_role = serializer.save(user=self.user)
 
@@ -1032,9 +1012,7 @@ class UserRoleSerializerTestCase(TestCase):
         )
 
         data = {"role_id": other_role.id}
-        serializer = UserRoleSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = UserRoleSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("role_id", serializer.errors)
 

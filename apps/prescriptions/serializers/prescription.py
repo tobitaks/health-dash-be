@@ -1,3 +1,5 @@
+import contextlib
+
 from rest_framework import serializers
 
 from apps.prescriptions.models import Prescription, PrescriptionItem
@@ -112,10 +114,8 @@ class PrescriptionCreateUpdateSerializer(serializers.ModelSerializer):
             if medicine_id:
                 from apps.medicines.models import Medicine
 
-                try:
+                with contextlib.suppress(Medicine.DoesNotExist):
                     item_data["medicine"] = Medicine.objects.get(id=medicine_id)
-                except Medicine.DoesNotExist:
-                    pass
             PrescriptionItem.objects.create(prescription=prescription, **item_data)
 
         return prescription
@@ -139,10 +139,8 @@ class PrescriptionCreateUpdateSerializer(serializers.ModelSerializer):
                 if medicine_id:
                     from apps.medicines.models import Medicine
 
-                    try:
+                    with contextlib.suppress(Medicine.DoesNotExist):
                         item_data["medicine"] = Medicine.objects.get(id=medicine_id)
-                    except Medicine.DoesNotExist:
-                        pass
                 PrescriptionItem.objects.create(prescription=instance, **item_data)
 
         return instance

@@ -72,9 +72,7 @@ class MedicineModelTestCase(TestCase):
 
     def test_full_name_property_with_brand(self):
         """full_name should include brand name."""
-        self.assertEqual(
-            self.medicine.full_name, "Paracetamol (Biogesic) 500mg Tablet"
-        )
+        self.assertEqual(self.medicine.full_name, "Paracetamol (Biogesic) 500mg Tablet")
 
     def test_full_name_property_without_brand(self):
         """full_name should work without brand name."""
@@ -207,9 +205,7 @@ class MedicineModelTestCase(TestCase):
             form="tablet",
             default_sig="Take 1 tablet twice daily after meals",
         )
-        self.assertEqual(
-            medicine.default_sig, "Take 1 tablet twice daily after meals"
-        )
+        self.assertEqual(medicine.default_sig, "Take 1 tablet twice daily after meals")
 
     def test_default_quantity_field(self):
         """default_quantity should store default quantity."""
@@ -336,9 +332,7 @@ class MedicineSerializerTestCase(TestCase):
     def test_full_name_field(self):
         """full_name should be included."""
         serializer = MedicineSerializer(self.medicine)
-        self.assertEqual(
-            serializer.data["full_name"], "Paracetamol (Biogesic) 500mg Tablet"
-        )
+        self.assertEqual(serializer.data["full_name"], "Paracetamol (Biogesic) 500mg Tablet")
 
     def test_create_sets_clinic_from_request(self):
         """create should set clinic from request context."""
@@ -348,9 +342,7 @@ class MedicineSerializerTestCase(TestCase):
             "form": "capsule",
             "category": "antibiotic",
         }
-        serializer = MedicineSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = MedicineSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         medicine = serializer.save()
         self.assertEqual(medicine.clinic, self.clinic)
@@ -363,17 +355,13 @@ class MedicineSerializerTestCase(TestCase):
             "form": "tablet",
             "category": "nsaid",
         }
-        serializer = MedicineSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = MedicineSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_serializer_missing_required_fields(self):
         """Serializer should fail without required fields."""
         data = {"brand_name": "Some Brand"}
-        serializer = MedicineSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = MedicineSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("generic_name", serializer.errors)
         self.assertIn("strength", serializer.errors)
@@ -386,9 +374,7 @@ class MedicineSerializerTestCase(TestCase):
             "strength": "100mg",
             "form": "invalid_form",
         }
-        serializer = MedicineSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = MedicineSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("form", serializer.errors)
 
@@ -400,9 +386,7 @@ class MedicineSerializerTestCase(TestCase):
             "form": "tablet",
             "category": "invalid_category",
         }
-        serializer = MedicineSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = MedicineSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("category", serializer.errors)
 
@@ -415,9 +399,7 @@ class MedicineSerializerTestCase(TestCase):
             "form": "tablet",
             "is_active": False,
         }
-        serializer = MedicineSerializer(
-            self.medicine, data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = MedicineSerializer(self.medicine, data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         updated = serializer.save()
         self.assertEqual(updated.brand_name, "Updated Brand")

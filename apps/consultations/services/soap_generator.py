@@ -244,7 +244,7 @@ Respond with a JSON object containing: subjective, objective, assessment, plan""
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse SOAP response as JSON: {e}")
         logger.error(f"Response content: {content}")
-        raise ValueError("AI response was not valid JSON. Please try again.")
+        raise ValueError("AI response was not valid JSON. Please try again.") from e
     except Exception:
         logger.exception("Error generating SOAP notes")
         raise

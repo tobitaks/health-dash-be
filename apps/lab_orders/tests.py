@@ -14,9 +14,7 @@ from apps.consultations.models import Consultation
 from apps.lab_orders.models import LabOrder, LabOrderItem, LabTest
 from apps.lab_orders.serializers import (
     LabOrderCreateUpdateSerializer,
-    LabOrderItemSerializer,
     LabOrderSerializer,
-    LabTestCreateUpdateSerializer,
     LabTestSerializer,
 )
 from apps.patients.models import Patient
@@ -230,7 +228,7 @@ class LabOrderModelTestCase(TestCase):
                 clinic=self.clinic,
                 consultation=self.consultation,
                 patient=self.patient,
-                order_id=f"LAB-2026-{100+i:04d}",
+                order_id=f"LAB-2026-{100 + i:04d}",
                 order_date=date.today(),
                 status=status,
             )
@@ -244,7 +242,7 @@ class LabOrderModelTestCase(TestCase):
                 clinic=self.clinic,
                 consultation=self.consultation,
                 patient=self.patient,
-                order_id=f"LAB-2026-{200+i:04d}",
+                order_id=f"LAB-2026-{200 + i:04d}",
                 order_date=date.today(),
                 priority=priority,
             )
@@ -633,9 +631,7 @@ class LabOrderCreateUpdateSerializerTestCase(TestCase):
 
     def test_create_lab_order_with_items(self):
         """Should create lab order with nested items."""
-        serializer = LabOrderCreateUpdateSerializer(
-            data=self.valid_data, context={"request": self.get_mock_request()}
-        )
+        serializer = LabOrderCreateUpdateSerializer(data=self.valid_data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         lab_order = serializer.save()
 
@@ -647,9 +643,7 @@ class LabOrderCreateUpdateSerializerTestCase(TestCase):
 
     def test_create_lab_order_generates_id(self):
         """Should generate unique order ID."""
-        serializer = LabOrderCreateUpdateSerializer(
-            data=self.valid_data, context={"request": self.get_mock_request()}
-        )
+        serializer = LabOrderCreateUpdateSerializer(data=self.valid_data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         lab_order = serializer.save()
 
@@ -667,9 +661,7 @@ class LabOrderCreateUpdateSerializerTestCase(TestCase):
                 "sample_type": "blood",
             }
         ]
-        serializer = LabOrderCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = LabOrderCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         lab_order = serializer.save()
 
@@ -719,9 +711,7 @@ class LabOrderCreateUpdateSerializerTestCase(TestCase):
     def test_missing_required_fields(self):
         """Should fail without required fields."""
         data = {"notes": "Some notes"}
-        serializer = LabOrderCreateUpdateSerializer(
-            data=data, context={"request": self.get_mock_request()}
-        )
+        serializer = LabOrderCreateUpdateSerializer(data=data, context={"request": self.get_mock_request()})
         self.assertFalse(serializer.is_valid())
         self.assertIn("consultation", serializer.errors)
         self.assertIn("order_date", serializer.errors)
