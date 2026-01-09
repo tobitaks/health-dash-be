@@ -12,7 +12,7 @@ from stripe.error import InvalidRequestError
 
 from apps.users.models import CustomUser
 from apps.utils.billing import get_stripe_module
-from apps.web.meta import absolute_url
+from apps.utils.urls import absolute_url
 
 from .exceptions import SubscriptionConfigError
 

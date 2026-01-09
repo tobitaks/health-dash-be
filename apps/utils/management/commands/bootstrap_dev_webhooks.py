@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from djstripe.models import Account, WebhookEndpoint
 
-from apps.web.meta import absolute_url
+from apps.utils.urls import absolute_url
 
 
 class Command(BaseCommand):

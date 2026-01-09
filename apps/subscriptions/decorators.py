@@ -25,6 +25,7 @@ class redirect_subscription_errors:
 
 class _ActiveSubscriptionRequired:
     # decorator follows this pattern: https://stackoverflow.com/a/7492124/8207
+    # Note: This decorator is for Django template views. For API views, use DRF permissions instead.
 
     def __init__(self, f, limit_to_plans=None):
         self.f = f
@@ -40,7 +41,8 @@ class _ActiveSubscriptionRequired:
             messages.info(
                 request, _("Sorry, but you don't have access to that. {details}").format(details=check_result.message)
             )
-            return HttpResponseRedirect(reverse("subscriptions:subscription_details"))
+            # Redirect to root URL (Swagger docs) since template views were removed
+            return HttpResponseRedirect("/")
         else:
             return self.f(request, *args, **kwargs)
 

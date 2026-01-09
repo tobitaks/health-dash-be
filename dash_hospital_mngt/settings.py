@@ -58,7 +58,6 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "channels",
-    "django_vite",
     "allauth.mfa",
     "rest_framework",
     "rest_framework.authtoken",
@@ -82,7 +81,6 @@ THIRD_PARTY_APPS = [
 PROJECT_APPS = [
     "apps.subscriptions.apps.SubscriptionConfig",
     "apps.users.apps.UserConfig",
-    "apps.dashboard.apps.DashboardConfig",
     "apps.api.apps.APIConfig",
     "apps.clinic.apps.ClinicConfig",
     "apps.patients.apps.PatientsConfig",
@@ -93,7 +91,6 @@ PROJECT_APPS = [
     "apps.lab_orders.apps.LabOrdersConfig",
     "apps.billing.apps.BillingConfig",
     "apps.utils",
-    "apps.web",
     "apps.chat",
     "apps.ai.apps.AiConfig",
 ]
@@ -114,8 +111,6 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    "apps.web.middleware.locale.UserLocaleMiddleware",
-    "apps.web.middleware.locale.UserTimezoneMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hijack.middleware.HijackUserMiddleware",
@@ -146,9 +141,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "apps.web.context_processors.project_meta",
-                # this line can be removed if not using google analytics
-                "apps.web.context_processors.google_analytics_id",
             ],
             "loaders": _DEFAULT_LOADERS if DEBUG else _CACHED_LOADERS,
         },
@@ -344,16 +336,8 @@ if USE_S3_MEDIA:
     PUBLIC_MEDIA_LOCATION = "media"
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/"
     STORAGES["default"] = {
-        "BACKEND": "apps.web.storage_backends.PublicMediaStorage",
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
     }
-
-# Vite Integration
-DJANGO_VITE = {
-    "default": {
-        "dev_mode": env.bool("DJANGO_VITE_DEV_MODE", default=DEBUG),
-        "manifest_path": BASE_DIR / "static" / ".vite" / "manifest.json",
-    }
-}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/stable/ref/settings/#default-auto-field
