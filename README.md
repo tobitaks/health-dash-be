@@ -1,219 +1,189 @@
-# Dash Hospital Mngt
+# HealthDash - Hospital Management System
 
-SaaS Hospital Management
+A comprehensive multi-tenant SaaS hospital management platform built with Django REST Framework, designed for clinics to manage patients, appointments, consultations, prescriptions, lab orders, and billing.
 
-## Quickstart
+## Features
+
+### Core Modules
+
+- **Patient Management** - Patient registration, demographic data, contact information, medical history tracking
+- **Appointment Scheduling** - Service-based appointments with date/time management and status tracking
+- **Consultations** - Clinical encounters with vital signs, chief complaints, diagnoses, and clinical notes
+- **Prescriptions** - Medicine catalog with dosage forms, prescription generation with multiple items
+- **Lab Orders** - Laboratory test catalog, order management, results tracking with abnormal flags
+- **Billing & Invoicing** - Invoice generation, line items, discount support (fixed/percentage), payment recording
+
+### Platform Features
+
+- **Multi-tenant Architecture** - Clinic-based data isolation ensuring each clinic only accesses their own data
+- **Role-based Access Control** - Custom roles with granular policy-based permissions
+- **User Management** - Staff management with role assignments
+- **Service Catalog** - Configurable clinic services with pricing
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Language** | Python 3.12 |
+| **Framework** | Django 5.x, Django REST Framework |
+| **Database** | PostgreSQL |
+| **Cache** | Redis |
+| **Task Queue** | Celery |
+| **Authentication** | JWT (SimpleJWT), django-allauth |
+| **Infrastructure** | Docker, Docker Compose |
+| **Code Quality** | Ruff (linting/formatting), pre-commit hooks |
+
+## Architecture
+
+```
+apps/
+├── api/              # REST API endpoints and views
+├── appointments/     # Appointment scheduling
+├── billing/          # Invoices and payments
+├── chat/             # Real-time messaging
+├── clinic/           # Clinic and service management
+├── consultations/    # Patient consultations
+├── lab_orders/       # Laboratory orders and results
+├── medicines/        # Medicine catalog
+├── patients/         # Patient records
+├── prescriptions/    # Prescription management
+├── users/            # User, role, and permission management
+└── utils/            # Shared utilities and base models
+```
+
+### Key Design Patterns
+
+- **BaseModel** - All models inherit from a base class with `created_at` and `updated_at` timestamps
+- **Clinic Tenancy** - Automatic queryset filtering by user's clinic via `ClinicQuerySetMixin`
+- **Nested Serializers** - Support for creating parent-child records in single API calls (e.g., Invoice with InvoiceItems)
+- **ID Generation** - Human-readable sequential IDs per clinic (e.g., `PT-2026-0001`, `INV-2026-0001`)
+
+## Testing
+
+Comprehensive test coverage with **400+ unit tests** across 11 apps:
+
+| App | Tests | Coverage |
+|-----|-------|----------|
+| patients | 30 | Models, serializers, ID generation |
+| appointments | 35 | Models, serializers, validation |
+| clinic | 34 | Clinic, services, serializers |
+| medicines | 30 | Medicine catalog, form/category choices |
+| prescriptions | 40 | Prescriptions, items, nested creation |
+| lab_orders | 38 | Lab tests, orders, results tracking |
+| users | 71 | Users, roles, policies, permissions |
+| billing | 50 | Invoices, payments, discounts |
+| consultations | - | Consultation workflow |
+| chat | - | Messaging |
+| utils | - | Sanitization utilities |
+
+Run tests:
+
+```bash
+make test
+```
+
+Run specific app tests:
+
+```bash
+make test ARGS='apps.billing.tests'
+```
+
+## Quick Start
 
 ### Prerequisites
 
-To run the app in the recommended configuration, you will need the following installed:
 - [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/install)
+- On Windows: [make](https://stackoverflow.com/a/57042516/8207)
 
-On Windows, you will also need to install `make`, which you can do by
-[following these instructions](https://stackoverflow.com/a/57042516/8207).
+### Installation
 
-### Initial setup
+1. Clone the repository:
 
-Run the following command to initialize your application:
+```bash
+git clone https://github.com/tobitaks/health-dash-be.git
+cd health-dash-be
+```
+
+2. Initialize the application:
 
 ```bash
 make init
 ```
 
 This will:
+- Build and start PostgreSQL and Redis
+- Build and start Django dev server
+- Build and start Celery worker
+- Build front-end assets
+- Run database migrations
 
-- Build and run your Postgres database
-- Build and run your Redis database
-- Build and run Django dev server
-- Build and run your Celery worker
-- Build and run your front end (JavaScript and CSS) pipeline
-- Run your database migrations
+3. Access the application at [http://localhost:8000](http://localhost:8000)
 
-Your app should now be running! You can open it at [localhost:8000](http://localhost:8000/).
-
-If you're just getting started, [try these steps next](https://docs.saaspegasus.com/getting-started/#post-installation-steps).
-
-## Using the Makefile
-
-You can run `make` to see other helper functions, and you can view the source
-of the file in case you need to run any specific commands.
-
-For example, you can run management commands in containers using the same method
-used in the `Makefile`. E.g.
-
-```
-docker compose exec web uv run manage.py createsuperuser
-```
-
-## Installation - Native
-
-You can also install/run the app directly on your OS using the instructions below.
-
-You can setup a virtual environment and install dependencies in a single command with:
+### Common Commands
 
 ```bash
-uv sync
+make start          # Start all services
+make stop           # Stop all services
+make test           # Run all tests
+make shell          # Open Django shell
+make dbshell        # Open PostgreSQL shell
+make migrations     # Create new migrations
+make migrate        # Apply migrations
+make ruff           # Run linter and formatter
 ```
 
-This will create your virtual environment in the `.venv` directory of your project root.
+## API Endpoints
 
-## Set up database
+The REST API follows standard conventions:
 
-*If you are using Docker you can skip these steps.*
+| Resource | Endpoints |
+|----------|-----------|
+| Authentication | `/api/auth/register/`, `/api/auth/login/`, `/api/auth/logout/` |
+| Patients | `/api/patients/` |
+| Appointments | `/api/appointments/` |
+| Consultations | `/api/consultations/` |
+| Prescriptions | `/api/prescriptions/` |
+| Lab Orders | `/api/lab-orders/` |
+| Billing | `/api/invoices/` |
+| Staff | `/api/staff/` |
+| Roles | `/api/roles/` |
 
-Create a database named `dash_hospital_mngt`.
+API documentation available at `/api/schema/` (OpenAPI/Swagger).
 
-```
-createdb dash_hospital_mngt
-```
+## Development
 
-Create database migrations:
-
-```
-uv run manage.py makemigrations
-```
-
-Create database tables:
-
-```
-uv run manage.py migrate
-```
-
-## Running server
-
-**Docker:**
+### Code Quality
 
 ```bash
-make start
+make ruff-format    # Format code
+make ruff-lint      # Lint and auto-fix
+make ruff           # Run both
 ```
 
-**Native:**
+### Git Hooks
+
+Install pre-commit hooks:
 
 ```bash
-uv run manage.py runserver
-```
-
-## Building front-end
-
-To build JavaScript and CSS files, first install npm packages:
-
-**Docker:**
-
-```bash
-make npm-install
-```
-
-**Native:**
-
-```bash
-npm install
-```
-
-Then build (and watch for changes locally):
-
-**Docker:**
-
-```bash
-make npm-watch
-```
-
-**Native:**
-
-```bash
-npm run dev
-```
-
-## Running Celery
-
-Celery can be used to run background tasks.
-If you use Docker it will start automatically.
-
-You can run it using:
-
-```bash
-celery -A dash_hospital_mngt worker -l INFO --pool=solo
-```
-
-Or with celery beat (for scheduled tasks):
-
-```bash
-celery -A dash_hospital_mngt worker -l INFO -B --pool=solo
-```
-
-Note: Using the `solo` pool is recommended for development but not for production.
-
-## Updating translations
-
-**Using make:**
-
-```bash
-make translations
-```
-
-**Native:**
-
-```bash
-uv run manage.py makemessages --all --ignore node_modules --ignore .venv
-uv run manage.py makemessages -d djangojs --all --ignore node_modules --ignore .venv
-uv run manage.py compilemessages --ignore .venv
-```
-
-## Google Authentication Setup
-
-To setup Google Authentication, follow the [instructions here](https://docs.allauth.org/en/latest/socialaccount/providers/google.html).
-
-## Installing Git commit hooks
-
-To install the Git commit hooks run the following:
-
-```shell
 uv run pre-commit install --install-hooks
 ```
 
-Once these are installed they will be run on every commit.
-
-For more information see the [docs](https://docs.saaspegasus.com/code-structure#code-formatting).
-
-## Running Tests
-
-To run tests:
-
-**Using make:**
+### Native Installation (without Docker)
 
 ```bash
-make test
+# Install dependencies
+uv sync
+
+# Create database
+createdb dash_hospital_mngt
+
+# Run migrations
+uv run manage.py migrate
+
+# Start server
+uv run manage.py runserver
 ```
 
-**Native:**
+## License
 
-```bash
-uv run manage.py test
-```
-
-Or to test a specific app/module:
-
-**Using make:**
-
-```bash
-make test ARGS='apps.web.tests.test_basic_views --keepdb'
-```
-
-**Native:**
-
-```bash
-uv run manage.py test apps.web.tests.test_basic_views --keepdb
-```
-
-On Linux-based systems you can watch for changes using the following:
-
-**Docker:**
-
-```bash
-find . -name '*.py' | entr docker compose exec web uv run manage.py test apps.web.tests.test_basic_views
-```
-
-**Native:**
-
-```bash
-find . -name '*.py' | entr uv run manage.py test apps.web.tests.test_basic_views
-```
+See [LICENSE.md](LICENSE.md) for details.
