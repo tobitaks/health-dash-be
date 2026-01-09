@@ -93,7 +93,7 @@ def build_soap_context(consultation, patient_history) -> dict:
             {
                 "date": str(c.consultation_date),
                 "chief_complaint": c.chief_complaint or "",
-                "diagnosis": c.diagnosis or "",
+                "diagnosis": c.primary_diagnosis or "",
                 "assessment": c.soap_assessment or "",
             }
             for c in patient_history

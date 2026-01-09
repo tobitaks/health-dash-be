@@ -12,14 +12,14 @@ class ClinicAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {"fields": ("name", "is_active")}),
-        ("Contact Information", {"fields": ("email", "phone", "mobile", "website")}),
+        ("Contact Information", {"fields": ("email", "phone", "website")}),
         (
             "Address",
             {
                 "fields": (
                     "address_street",
                     "address_city",
-                    "address_state",
+                    "address_region",
                     "address_postal_code",
                     "address_country",
                 )

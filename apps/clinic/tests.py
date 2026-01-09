@@ -478,3 +478,69 @@ class ServiceCreateUpdateSerializerTestCase(TestCase):
         self.assertTrue(serializer.is_valid(), serializer.errors)
         service = serializer.save(clinic=self.clinic)
         self.assertTrue(service.is_active)
+
+
+class ClinicAdminTestCase(TestCase):
+    """Tests for the Clinic admin configuration."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        from django.contrib.admin.sites import AdminSite
+
+        from apps.clinic.admin import ClinicAdmin
+
+        self.site = AdminSite()
+        self.admin = ClinicAdmin(Clinic, self.site)
+        self.clinic = Clinic.objects.create(
+            name="Test Clinic",
+            email="test@clinic.com",
+            phone="+63 2 1234 5678",
+            address_street="123 Main St",
+            address_city="Manila",
+            address_region="Metro Manila",
+        )
+
+    def test_list_display_fields_exist(self):
+        """All fields in list_display should exist on the model."""
+        for field in self.admin.list_display:
+            if field == "__str__":
+                continue
+            self.assertTrue(
+                hasattr(Clinic, field) or hasattr(self.admin, field),
+                f"Field '{field}' in list_display does not exist on Clinic model",
+            )
+
+    def test_list_filter_fields_exist(self):
+        """All fields in list_filter should exist on the model."""
+        for field in self.admin.list_filter:
+            self.assertTrue(
+                hasattr(Clinic, field),
+                f"Field '{field}' in list_filter does not exist on Clinic model",
+            )
+
+    def test_search_fields_valid(self):
+        """All fields in search_fields should be valid."""
+        for field in self.admin.search_fields:
+            # Remove lookup suffixes like __icontains
+            base_field = field.split("__")[0]
+            self.assertTrue(
+                hasattr(Clinic, base_field),
+                f"Field '{base_field}' in search_fields does not exist on Clinic model",
+            )
+
+    def test_fieldsets_fields_exist(self):
+        """All fields in fieldsets should exist on the model."""
+        for fieldset_name, fieldset_options in self.admin.fieldsets:
+            for field in fieldset_options.get("fields", []):
+                self.assertTrue(
+                    hasattr(Clinic, field),
+                    f"Field '{field}' in fieldset '{fieldset_name}' does not exist on Clinic model",
+                )
+
+    def test_readonly_fields_exist(self):
+        """All readonly_fields should exist on the model."""
+        for field in self.admin.readonly_fields:
+            self.assertTrue(
+                hasattr(Clinic, field),
+                f"Field '{field}' in readonly_fields does not exist on Clinic model",
+            )

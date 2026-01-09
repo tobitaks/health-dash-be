@@ -251,3 +251,52 @@ class ConsultationFollowUpUpdateSerializerSanitizationTestCase(ConsultationSeria
             serializer.validated_data["follow_up_notes"],
             "Schedule follow-up appointment in 2 weeks",
         )
+
+
+class ConsultationAdminTestCase(TestCase):
+    """Tests for the Consultation admin configuration."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        from django.contrib.admin.sites import AdminSite
+
+        from apps.consultations.admin import ConsultationAdmin
+
+        self.site = AdminSite()
+        self.admin = ConsultationAdmin(Consultation, self.site)
+
+    def test_list_display_fields_exist(self):
+        """All fields in list_display should exist on the model."""
+        for field in self.admin.list_display:
+            if field == "__str__":
+                continue
+            self.assertTrue(
+                hasattr(Consultation, field) or hasattr(self.admin, field),
+                f"Field '{field}' in list_display does not exist on Consultation model",
+            )
+
+    def test_list_filter_fields_exist(self):
+        """All fields in list_filter should exist on the model."""
+        for field in self.admin.list_filter:
+            self.assertTrue(
+                hasattr(Consultation, field),
+                f"Field '{field}' in list_filter does not exist on Consultation model",
+            )
+
+    def test_search_fields_valid(self):
+        """All fields in search_fields should be valid."""
+        for field in self.admin.search_fields:
+            # Handle related field lookups like patient__first_name
+            base_field = field.split("__")[0]
+            self.assertTrue(
+                hasattr(Consultation, base_field),
+                f"Field '{base_field}' in search_fields does not exist on Consultation model",
+            )
+
+    def test_readonly_fields_exist(self):
+        """All readonly_fields should exist on the model."""
+        for field in self.admin.readonly_fields:
+            self.assertTrue(
+                hasattr(Consultation, field),
+                f"Field '{field}' in readonly_fields does not exist on Consultation model",
+            )

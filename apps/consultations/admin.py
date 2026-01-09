@@ -21,7 +21,7 @@ class ConsultationAdmin(admin.ModelAdmin):
         "patient__last_name",
         "patient__patient_id",
         "chief_complaint",
-        "diagnosis",
+        "primary_diagnosis",
     )
     readonly_fields = ("consultation_id", "created_at", "updated_at")
     ordering = ("-consultation_date", "-consultation_time")
