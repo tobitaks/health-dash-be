@@ -5,12 +5,12 @@ URL patterns for Invoice/Billing API.
 from django.urls import path
 
 from .billing_views import (
-    InvoiceListCreateView,
-    InvoiceDetailView,
     ConsultationInvoiceView,
-    InvoicePayView,
-    InvoiceFinalizeView,
     InvoiceCancelView,
+    InvoiceDetailView,
+    InvoiceFinalizeView,
+    InvoiceListCreateView,
+    InvoicePayView,
     UnbilledConsultationsView,
 )
 

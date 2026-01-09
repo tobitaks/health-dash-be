@@ -8,10 +8,10 @@ from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
 from apps.patients.models import Patient
 from apps.patients.serializers import PatientCreateUpdateSerializer, PatientSerializer
 
@@ -25,9 +25,8 @@ def generate_patient_id(clinic):
     prefix = f"PT-{year}-"
 
     # Get the max patient_id for this clinic and year
-    last_patient = (
-        Patient.objects.filter(clinic=clinic, patient_id__startswith=prefix)
-        .aggregate(max_id=Max("patient_id"))
+    last_patient = Patient.objects.filter(clinic=clinic, patient_id__startswith=prefix).aggregate(
+        max_id=Max("patient_id")
     )
 
     if last_patient["max_id"]:
@@ -46,17 +45,11 @@ class PatientListCreateView(APIView):
     POST: Create a new patient.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all patients for the clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         patients = Patient.objects.filter(clinic=clinic)
         return Response(
             {
@@ -69,12 +62,6 @@ class PatientListCreateView(APIView):
     def post(self, request):
         """Create a new patient."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         serializer = PatientCreateUpdateSerializer(
             data=request.data,
             context={"request": request},
@@ -106,7 +93,7 @@ class PatientDetailView(APIView):
     DELETE: Delete a patient.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get patient by ID, ensuring it belongs to user's clinic."""

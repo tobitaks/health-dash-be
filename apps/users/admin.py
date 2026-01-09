@@ -6,7 +6,17 @@ from .models import CustomUser
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ("username", "email", "first_name", "last_name", "clinic", "role", "is_owner", "is_staff", "date_joined")
+    list_display = (
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "clinic",
+        "role",
+        "is_owner",
+        "is_staff",
+        "date_joined",
+    )
     list_filter = ("is_staff", "is_superuser", "is_active", "role", "is_owner", "clinic", "groups", "date_joined")
     ordering = ("-date_joined",)
 

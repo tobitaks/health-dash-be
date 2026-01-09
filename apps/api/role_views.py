@@ -7,10 +7,10 @@ from collections import defaultdict
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
 from apps.users.models import CustomUser, Policy, Role, RolePolicy, UserRole
 from apps.users.serializers import (
     PolicySerializer,
@@ -26,16 +26,11 @@ class RoleListCreateView(APIView):
     POST: Create a new role.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all roles for the clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         roles = Role.objects.filter(clinic=clinic)
         serializer = RoleSerializer(roles, many=True)
@@ -80,7 +75,7 @@ class RoleDetailView(APIView):
     DELETE: Delete a role (non-system only).
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get role by ID, ensuring it belongs to user's clinic."""
@@ -187,7 +182,7 @@ class PolicyListView(APIView):
     GET: List all available policies grouped by category.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """Return all available policies grouped by category."""
@@ -215,7 +210,7 @@ class UserRoleListView(APIView):
     POST: Assign a role to a user.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_user(self, pk, request):
         """Get user by ID, ensuring they belong to the same clinic."""
@@ -279,7 +274,7 @@ class UserRoleDetailView(APIView):
     DELETE: Remove a role from a user.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def delete(self, request, user_id, role_id):
         """Remove a role from a user (owner only)."""

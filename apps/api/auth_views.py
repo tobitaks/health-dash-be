@@ -7,7 +7,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.users.models import CustomUser
 from apps.users.serializers import (
     CustomUserSerializer,
     LoginSerializer,

@@ -5,13 +5,13 @@ URL patterns for Lab Order API.
 from django.urls import path
 
 from .lab_order_views import (
-    LabTestListCreateView,
-    LabTestDetailView,
-    LabOrderListCreateView,
-    LabOrderDetailView,
-    LabOrderStatusView,
     ConsultationLabOrdersView,
+    LabOrderDetailView,
     LabOrderItemResultView,
+    LabOrderListCreateView,
+    LabOrderStatusView,
+    LabTestDetailView,
+    LabTestListCreateView,
 )
 
 app_name = "lab_orders"

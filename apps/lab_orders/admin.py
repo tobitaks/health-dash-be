@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from apps.lab_orders.models import LabTest, LabOrder, LabOrderItem
+from apps.lab_orders.models import LabOrder, LabOrderItem, LabTest
 
 
 class LabOrderItemInline(admin.TabularInline):

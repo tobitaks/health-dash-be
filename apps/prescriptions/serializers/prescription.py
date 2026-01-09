@@ -51,9 +51,7 @@ class PrescriptionSerializer(serializers.ModelSerializer):
     doctor_name = serializers.CharField(read_only=True)
     medicine_count = serializers.IntegerField(read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
-    consultation_id_display = serializers.CharField(
-        source="consultation.consultation_id", read_only=True
-    )
+    consultation_id_display = serializers.CharField(source="consultation.consultation_id", read_only=True)
 
     class Meta:
         model = Prescription
@@ -104,9 +102,7 @@ class PrescriptionCreateUpdateSerializer(serializers.ModelSerializer):
         validated_data["prescribed_by"] = request.user if request else None
 
         # Generate prescription ID
-        validated_data["prescription_id"] = self._generate_prescription_id(
-            validated_data["clinic"]
-        )
+        validated_data["prescription_id"] = self._generate_prescription_id(validated_data["clinic"])
 
         prescription = Prescription.objects.create(**validated_data)
 
@@ -115,6 +111,7 @@ class PrescriptionCreateUpdateSerializer(serializers.ModelSerializer):
             medicine_id = item_data.pop("medicine_id", None)
             if medicine_id:
                 from apps.medicines.models import Medicine
+
                 try:
                     item_data["medicine"] = Medicine.objects.get(id=medicine_id)
                 except Medicine.DoesNotExist:
@@ -141,6 +138,7 @@ class PrescriptionCreateUpdateSerializer(serializers.ModelSerializer):
                 medicine_id = item_data.pop("medicine_id", None)
                 if medicine_id:
                     from apps.medicines.models import Medicine
+
                     try:
                         item_data["medicine"] = Medicine.objects.get(id=medicine_id)
                     except Medicine.DoesNotExist:

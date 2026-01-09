@@ -2,14 +2,11 @@
 Management command to populate common lab tests for a clinic.
 """
 
-from decimal import Decimal
 
 from django.core.management.base import BaseCommand
 
-from apps.clinic.models import Clinic
 from apps.lab_orders.models import LabTest
 from apps.users.models import CustomUser
-
 
 # Common lab tests
 COMMON_LAB_TESTS = [
@@ -625,12 +622,8 @@ class Command(BaseCommand):
             created_count += 1
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Created {created_count} lab tests, skipped {skipped_count} (already exist)"
-            )
+            self.style.SUCCESS(f"Created {created_count} lab tests, skipped {skipped_count} (already exist)")
         )
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Total lab tests in database: {LabTest.objects.filter(clinic=clinic).count()}"
-            )
+            self.style.SUCCESS(f"Total lab tests in database: {LabTest.objects.filter(clinic=clinic).count()}")
         )

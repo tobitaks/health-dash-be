@@ -6,20 +6,19 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
 from apps.consultations.models import Consultation
-from apps.lab_orders.models import LabTest, LabOrder, LabOrderItem
+from apps.lab_orders.models import LabOrder, LabOrderItem, LabTest
 from apps.lab_orders.serializers import (
-    LabTestSerializer,
-    LabTestCreateUpdateSerializer,
-    LabOrderSerializer,
     LabOrderCreateUpdateSerializer,
     LabOrderItemResultSerializer,
+    LabOrderSerializer,
+    LabTestCreateUpdateSerializer,
+    LabTestSerializer,
 )
-
 
 # =============================================================================
 # Lab Test Views (Catalog Management)
@@ -32,16 +31,11 @@ class LabTestListCreateView(APIView):
     POST: Create a new lab test.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all lab tests for the clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Filter options
         category = request.query_params.get("category")
@@ -61,9 +55,7 @@ class LabTestListCreateView(APIView):
             lab_tests = lab_tests.filter(is_active=is_active.lower() == "true")
 
         if search:
-            lab_tests = lab_tests.filter(name__icontains=search) | lab_tests.filter(
-                code__icontains=search
-            )
+            lab_tests = lab_tests.filter(name__icontains=search) | lab_tests.filter(code__icontains=search)
 
         return Response(
             {
@@ -76,11 +68,6 @@ class LabTestListCreateView(APIView):
     def post(self, request):
         """Create a new lab test."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         serializer = LabTestCreateUpdateSerializer(
             data=request.data,
@@ -111,7 +98,7 @@ class LabTestDetailView(APIView):
     DELETE: Delete a lab test.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get lab test by ID, ensuring it belongs to user's clinic."""
@@ -180,16 +167,11 @@ class LabOrderListCreateView(APIView):
     POST: Create a new lab order.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all lab orders for the clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Filter options
         patient_id = request.query_params.get("patient_id")
@@ -197,9 +179,11 @@ class LabOrderListCreateView(APIView):
         status_filter = request.query_params.get("status")
         priority = request.query_params.get("priority")
 
-        lab_orders = LabOrder.objects.filter(clinic=clinic).select_related(
-            "patient", "consultation", "ordered_by"
-        ).prefetch_related("items")
+        lab_orders = (
+            LabOrder.objects.filter(clinic=clinic)
+            .select_related("patient", "consultation", "ordered_by")
+            .prefetch_related("items")
+        )
 
         if patient_id:
             lab_orders = lab_orders.filter(patient_id=patient_id)
@@ -224,11 +208,6 @@ class LabOrderListCreateView(APIView):
     def post(self, request):
         """Create a new lab order."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Validate consultation belongs to clinic
         consultation_id = request.data.get("consultation")
@@ -270,14 +249,12 @@ class LabOrderDetailView(APIView):
     DELETE: Delete a lab order.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get lab order by ID, ensuring it belongs to user's clinic."""
         return get_object_or_404(
-            LabOrder.objects.select_related(
-                "patient", "consultation", "ordered_by"
-            ).prefetch_related("items"),
+            LabOrder.objects.select_related("patient", "consultation", "ordered_by").prefetch_related("items"),
             pk=pk,
             clinic=request.user.clinic,
         )
@@ -339,16 +316,11 @@ class LabOrderStatusView(APIView):
     PATCH: Update lab order status.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def patch(self, request, pk):
         """Update lab order status."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         lab_order = get_object_or_404(LabOrder, pk=pk, clinic=clinic)
         new_status = request.data.get("status")
@@ -385,22 +357,19 @@ class ConsultationLabOrdersView(APIView):
     POST: Create a lab order for a consultation.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request, consultation_id):
         """Get all lab orders for a consultation."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         consultation = get_object_or_404(Consultation, id=consultation_id, clinic=clinic)
 
-        lab_orders = LabOrder.objects.filter(consultation=consultation).select_related(
-            "patient", "consultation", "ordered_by"
-        ).prefetch_related("items")
+        lab_orders = (
+            LabOrder.objects.filter(consultation=consultation)
+            .select_related("patient", "consultation", "ordered_by")
+            .prefetch_related("items")
+        )
 
         return Response(
             {
@@ -413,11 +382,6 @@ class ConsultationLabOrdersView(APIView):
     def post(self, request, consultation_id):
         """Create a lab order for a consultation."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         consultation = get_object_or_404(Consultation, id=consultation_id, clinic=clinic)
 
@@ -452,16 +416,11 @@ class LabOrderItemResultView(APIView):
     PATCH: Update lab order item result.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def patch(self, request, pk, item_pk):
         """Update lab order item result."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         lab_order = get_object_or_404(LabOrder, pk=pk, clinic=clinic)
         lab_order_item = get_object_or_404(LabOrderItem, pk=item_pk, lab_order=lab_order)

@@ -1,10 +1,10 @@
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
 from apps.users.models import CustomUser
 from apps.users.serializers import (
     StaffCreateSerializer,
@@ -21,17 +21,11 @@ class StaffListCreateView(APIView):
     POST /api/staff/ - Create new staff member
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all staff members in the same clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User is not associated with a clinic.")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         staff = CustomUser.objects.filter(clinic=clinic).order_by("-date_joined")
         serializer = StaffListSerializer(staff, many=True)
 
@@ -83,7 +77,7 @@ class StaffDetailView(APIView):
     DELETE /api/staff/<id>/ - Deactivate staff member
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get staff member, ensuring they belong to the same clinic."""

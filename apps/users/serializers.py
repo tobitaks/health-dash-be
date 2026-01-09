@@ -37,7 +37,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     def get_roles(self, obj):
         """Return list of role objects assigned to user."""
-        from apps.users.serializers import RoleSerializer
 
         user_roles = obj.user_roles.select_related("role")
         return [

@@ -5,15 +5,15 @@ API views for Prescription CRUD operations.
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
 from apps.consultations.models import Consultation
 from apps.prescriptions.models import Prescription
 from apps.prescriptions.serializers import (
-    PrescriptionSerializer,
     PrescriptionCreateUpdateSerializer,
+    PrescriptionSerializer,
 )
 
 
@@ -23,25 +23,22 @@ class PrescriptionListCreateView(APIView):
     POST: Create a new prescription.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all prescriptions for the clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Filter options
         patient_id = request.query_params.get("patient_id")
         consultation_id = request.query_params.get("consultation_id")
         status_filter = request.query_params.get("status")
 
-        prescriptions = Prescription.objects.filter(clinic=clinic).select_related(
-            "patient", "consultation", "prescribed_by"
-        ).prefetch_related("items")
+        prescriptions = (
+            Prescription.objects.filter(clinic=clinic)
+            .select_related("patient", "consultation", "prescribed_by")
+            .prefetch_related("items")
+        )
 
         if patient_id:
             prescriptions = prescriptions.filter(patient_id=patient_id)
@@ -63,11 +60,6 @@ class PrescriptionListCreateView(APIView):
     def post(self, request):
         """Create a new prescription."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Validate consultation belongs to clinic
         consultation_id = request.data.get("consultation")
@@ -118,14 +110,12 @@ class PrescriptionDetailView(APIView):
     DELETE: Delete a prescription.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get prescription by ID, ensuring it belongs to user's clinic."""
         return get_object_or_404(
-            Prescription.objects.select_related(
-                "patient", "consultation", "prescribed_by"
-            ).prefetch_related("items"),
+            Prescription.objects.select_related("patient", "consultation", "prescribed_by").prefetch_related("items"),
             pk=pk,
             clinic=request.user.clinic,
         )
@@ -188,23 +178,20 @@ class ConsultationPrescriptionView(APIView):
     POST: Create prescription for a consultation (if doesn't exist).
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request, consultation_id):
         """Get prescription for a consultation."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         consultation = get_object_or_404(Consultation, id=consultation_id, clinic=clinic)
 
         try:
-            prescription = Prescription.objects.select_related(
-                "patient", "consultation", "prescribed_by"
-            ).prefetch_related("items").get(consultation=consultation)
+            prescription = (
+                Prescription.objects.select_related("patient", "consultation", "prescribed_by")
+                .prefetch_related("items")
+                .get(consultation=consultation)
+            )
 
             return Response(
                 {
@@ -226,11 +213,6 @@ class ConsultationPrescriptionView(APIView):
     def post(self, request, consultation_id):
         """Create prescription for a consultation."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         consultation = get_object_or_404(Consultation, id=consultation_id, clinic=clinic)
 

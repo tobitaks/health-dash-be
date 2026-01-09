@@ -48,9 +48,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     balance = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     discount_type_display = serializers.CharField(source="get_discount_type_display", read_only=True)
-    consultation_id_display = serializers.CharField(
-        source="consultation.consultation_id", read_only=True
-    )
+    consultation_id_display = serializers.CharField(source="consultation.consultation_id", read_only=True)
 
     class Meta:
         model = Invoice
@@ -124,6 +122,7 @@ class InvoiceCreateUpdateSerializer(serializers.ModelSerializer):
             service_id = item_data.pop("service_id", None)
             if service_id:
                 from apps.clinic.models import Service
+
                 try:
                     item_data["service"] = Service.objects.get(id=service_id)
                 except Service.DoesNotExist:
@@ -158,6 +157,7 @@ class InvoiceCreateUpdateSerializer(serializers.ModelSerializer):
                 service_id = item_data.pop("service_id", None)
                 if service_id:
                     from apps.clinic.models import Service
+
                     try:
                         item_data["service"] = Service.objects.get(id=service_id)
                     except Service.DoesNotExist:

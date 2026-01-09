@@ -5,9 +5,9 @@ URL patterns for Prescription API.
 from django.urls import path
 
 from .prescription_views import (
-    PrescriptionListCreateView,
-    PrescriptionDetailView,
     ConsultationPrescriptionView,
+    PrescriptionDetailView,
+    PrescriptionListCreateView,
 )
 
 app_name = "prescriptions"

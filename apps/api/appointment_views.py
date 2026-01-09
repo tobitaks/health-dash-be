@@ -8,10 +8,10 @@ from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
 from apps.appointments.models import Appointment
 from apps.appointments.serializers import AppointmentCreateUpdateSerializer, AppointmentSerializer
 
@@ -25,9 +25,8 @@ def generate_appointment_id(clinic):
     prefix = f"APT-{year}-"
 
     # Get the max appointment_id for this clinic and year
-    last_appointment = (
-        Appointment.objects.filter(clinic=clinic, appointment_id__startswith=prefix)
-        .aggregate(max_id=Max("appointment_id"))
+    last_appointment = Appointment.objects.filter(clinic=clinic, appointment_id__startswith=prefix).aggregate(
+        max_id=Max("appointment_id")
     )
 
     if last_appointment["max_id"]:
@@ -46,20 +45,12 @@ class AppointmentListCreateView(APIView):
     POST: Create a new appointment.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all appointments for the clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        appointments = Appointment.objects.filter(clinic=clinic).select_related(
-            "patient", "service", "assigned_to"
-        )
+        appointments = Appointment.objects.filter(clinic=clinic).select_related("patient", "service", "assigned_to")
         return Response(
             {
                 "success": True,
@@ -71,12 +62,6 @@ class AppointmentListCreateView(APIView):
     def post(self, request):
         """Create a new appointment."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         serializer = AppointmentCreateUpdateSerializer(
             data=request.data,
             context={"request": request},
@@ -108,7 +93,7 @@ class AppointmentDetailView(APIView):
     DELETE: Delete an appointment.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get appointment by ID, ensuring it belongs to user's clinic."""

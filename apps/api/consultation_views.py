@@ -11,10 +11,10 @@ from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
 from apps.consultations.models import Consultation
 from apps.consultations.serializers import (
     ConsultationBasicUpdateSerializer,
@@ -40,9 +40,9 @@ def generate_consultation_id(clinic):
     prefix = f"CONS-{year}-"
 
     # Get the max consultation_id for this clinic and year
-    last_consultation = Consultation.objects.filter(
-        clinic=clinic, consultation_id__startswith=prefix
-    ).aggregate(max_id=Max("consultation_id"))
+    last_consultation = Consultation.objects.filter(clinic=clinic, consultation_id__startswith=prefix).aggregate(
+        max_id=Max("consultation_id")
+    )
 
     if last_consultation["max_id"]:
         # Extract the sequence number and increment
@@ -60,17 +60,11 @@ class ConsultationListCreateView(APIView):
     POST: Create a new consultation.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all consultations for the clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         consultations = Consultation.objects.filter(clinic=clinic).select_related(
             "patient", "appointment", "created_by"
         )
@@ -85,12 +79,6 @@ class ConsultationListCreateView(APIView):
     def post(self, request):
         """Create a new consultation."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         serializer = ConsultationCreateSerializer(
             data=request.data,
             context={"request": request},
@@ -135,7 +123,7 @@ class ConsultationDetailView(APIView):
     DELETE: Delete a consultation.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get consultation by ID, ensuring it belongs to user's clinic."""
@@ -175,16 +163,11 @@ class GenerateSOAPView(APIView):
     POST: Generate SOAP notes using AI based on consultation data.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def post(self, request, pk):
         """Generate SOAP notes using AI."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Check if AI is configured (any LLM provider)
         has_openai = getattr(settings, "OPENAI_API_KEY", "") or ""
@@ -262,7 +245,7 @@ class ConsultationSectionUpdateMixin:
     """Base mixin for section-specific updates."""
 
     serializer_class = None  # Override in subclass
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get consultation by ID, ensuring it belongs to user's clinic."""

@@ -5,7 +5,6 @@ URL patterns for role management API.
 from django.urls import path
 
 from .role_views import (
-    PolicyListView,
     RoleDetailView,
     RoleListCreateView,
     UserRoleDetailView,

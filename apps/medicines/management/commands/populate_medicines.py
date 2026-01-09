@@ -4,10 +4,8 @@ Management command to populate common medicines for a clinic.
 
 from django.core.management.base import BaseCommand
 
-from apps.clinic.models import Clinic
 from apps.medicines.models import Medicine
 from apps.users.models import CustomUser
-
 
 # Common medicines in the Philippines
 COMMON_MEDICINES = [
@@ -552,12 +550,8 @@ class Command(BaseCommand):
             created_count += 1
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Created {created_count} medicines, skipped {skipped_count} (already exist)"
-            )
+            self.style.SUCCESS(f"Created {created_count} medicines, skipped {skipped_count} (already exist)")
         )
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Total medicines in database: {Medicine.objects.filter(clinic=clinic).count()}"
-            )
+            self.style.SUCCESS(f"Total medicines in database: {Medicine.objects.filter(clinic=clinic).count()}")
         )

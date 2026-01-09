@@ -5,10 +5,10 @@ API views for Medicine CRUD operations.
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
 from apps.medicines.models import Medicine
 from apps.medicines.serializers import MedicineSerializer
 
@@ -19,16 +19,11 @@ class MedicineListCreateView(APIView):
     POST: Create a new medicine.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all medicines for the clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Filter options
         is_active = request.query_params.get("is_active")
@@ -65,11 +60,6 @@ class MedicineListCreateView(APIView):
     def post(self, request):
         """Create a new medicine."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         serializer = MedicineSerializer(
             data=request.data,
@@ -100,7 +90,7 @@ class MedicineDetailView(APIView):
     DELETE: Delete a medicine.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get medicine by ID, ensuring it belongs to user's clinic."""
@@ -162,7 +152,7 @@ class MedicineOptionsView(APIView):
     GET: Get form and category options for dropdowns.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """Get form and category options."""

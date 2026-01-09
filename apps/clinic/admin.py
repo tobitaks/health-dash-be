@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import Clinic
 
 
@@ -10,26 +11,20 @@ class ClinicAdmin(admin.ModelAdmin):
     readonly_fields = ["created_at", "updated_at"]
 
     fieldsets = (
-        (None, {
-            "fields": ("name", "is_active")
-        }),
-        ("Contact Information", {
-            "fields": ("email", "phone", "mobile", "website")
-        }),
-        ("Address", {
-            "fields": (
-                "address_street",
-                "address_city",
-                "address_state",
-                "address_postal_code",
-                "address_country",
-            )
-        }),
-        ("Settings", {
-            "fields": ("timezone", "currency", "logo", "business_hours")
-        }),
-        ("Timestamps", {
-            "fields": ("created_at", "updated_at"),
-            "classes": ("collapse",)
-        }),
+        (None, {"fields": ("name", "is_active")}),
+        ("Contact Information", {"fields": ("email", "phone", "mobile", "website")}),
+        (
+            "Address",
+            {
+                "fields": (
+                    "address_street",
+                    "address_city",
+                    "address_state",
+                    "address_postal_code",
+                    "address_country",
+                )
+            },
+        ),
+        ("Settings", {"fields": ("timezone", "currency", "logo", "business_hours")}),
+        ("Timestamps", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )

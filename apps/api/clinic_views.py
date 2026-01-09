@@ -1,9 +1,8 @@
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.clinic.models import Clinic
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
 from apps.clinic.serializers import ClinicSerializer
 
 
@@ -15,21 +14,11 @@ class CurrentClinicView(APIView):
     PUT /api/clinic/
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """Get current user's clinic details."""
         clinic = request.user.clinic
-
-        if not clinic:
-            return Response(
-                {
-                    "success": False,
-                    "error": "No clinic associated with this user.",
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
         return Response(
             {
                 "success": True,
@@ -41,15 +30,6 @@ class CurrentClinicView(APIView):
     def put(self, request):
         """Update current user's clinic."""
         clinic = request.user.clinic
-
-        if not clinic:
-            return Response(
-                {
-                    "success": False,
-                    "error": "No clinic associated with this user.",
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         # Only owners can update clinic details
         if not request.user.is_owner:

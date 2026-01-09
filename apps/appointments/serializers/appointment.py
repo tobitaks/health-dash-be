@@ -4,8 +4,6 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from apps.appointments.models import Appointment
-from apps.patients.models import Patient
-from apps.clinic.models import Service
 
 
 class AppointmentSerializer(serializers.ModelSerializer):

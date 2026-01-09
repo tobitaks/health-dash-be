@@ -75,23 +75,13 @@ def build_soap_context(consultation, patient_history) -> dict:
                 else None
             ),
             "temperature": (
-                f"{consultation.temperature}°{consultation.temperature_unit}"
-                if consultation.temperature
-                else None
+                f"{consultation.temperature}°{consultation.temperature_unit}" if consultation.temperature else None
             ),
             "heart_rate": f"{consultation.heart_rate} bpm" if consultation.heart_rate else None,
-            "respiratory_rate": (
-                f"{consultation.respiratory_rate}/min" if consultation.respiratory_rate else None
-            ),
-            "oxygen_saturation": (
-                f"{consultation.oxygen_saturation}%" if consultation.oxygen_saturation else None
-            ),
-            "weight": (
-                f"{consultation.weight} {consultation.weight_unit}" if consultation.weight else None
-            ),
-            "height": (
-                f"{consultation.height} {consultation.height_unit}" if consultation.height else None
-            ),
+            "respiratory_rate": (f"{consultation.respiratory_rate}/min" if consultation.respiratory_rate else None),
+            "oxygen_saturation": (f"{consultation.oxygen_saturation}%" if consultation.oxygen_saturation else None),
+            "weight": (f"{consultation.weight} {consultation.weight_unit}" if consultation.weight else None),
+            "height": (f"{consultation.height} {consultation.height_unit}" if consultation.height else None),
         },
         "patient_medical_info": {
             "allergies": patient.allergies if patient.allergies else [],
@@ -198,16 +188,16 @@ async def generate_soap_with_ai(context: dict) -> dict:
     user_prompt = f"""Generate SOAP notes for this consultation:
 
 CHIEF COMPLAINT:
-{context['chief_complaint']}
+{context["chief_complaint"]}
 
 VITAL SIGNS:
-{_format_vitals(context['vital_signs'])}
+{_format_vitals(context["vital_signs"])}
 
 PATIENT MEDICAL INFORMATION:
-{_format_medical_info(context.get('patient_medical_info', {}))}
+{_format_medical_info(context.get("patient_medical_info", {}))}
 
 PATIENT HISTORY (recent consultations):
-{_format_history(context['patient_history'])}
+{_format_history(context["patient_history"])}
 
 Generate appropriate SOAP notes based on this information. Remember this is a draft
 for physician review - be helpful but indicate uncertainty appropriately.
@@ -255,6 +245,6 @@ Respond with a JSON object containing: subjective, objective, assessment, plan""
         logger.error(f"Failed to parse SOAP response as JSON: {e}")
         logger.error(f"Response content: {content}")
         raise ValueError("AI response was not valid JSON. Please try again.")
-    except Exception as e:
+    except Exception:
         logger.exception("Error generating SOAP notes")
         raise

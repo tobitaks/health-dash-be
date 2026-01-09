@@ -1,7 +1,7 @@
 from apps.prescriptions.serializers.prescription import (
+    PrescriptionCreateUpdateSerializer,
     PrescriptionItemSerializer,
     PrescriptionSerializer,
-    PrescriptionCreateUpdateSerializer,
 )
 
 __all__ = [

@@ -5,17 +5,17 @@ API views for Invoice CRUD operations.
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.billing.models import Invoice, InvoiceItem
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
+from apps.billing.models import Invoice
 from apps.billing.serializers import (
-    InvoiceSerializer,
-    InvoiceCreateUpdateSerializer,
-    InvoicePaySerializer,
-    InvoiceFinalizeSerializer,
     InvoiceCancelSerializer,
+    InvoiceCreateUpdateSerializer,
+    InvoiceFinalizeSerializer,
+    InvoicePaySerializer,
+    InvoiceSerializer,
 )
 from apps.consultations.models import Consultation
 
@@ -26,25 +26,22 @@ class InvoiceListCreateView(APIView):
     POST: Create a new invoice.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all invoices for the clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Filter options
         patient_id = request.query_params.get("patient_id")
         consultation_id = request.query_params.get("consultation_id")
         status_filter = request.query_params.get("status")
 
-        invoices = Invoice.objects.filter(clinic=clinic).select_related(
-            "patient", "consultation", "created_by"
-        ).prefetch_related("items")
+        invoices = (
+            Invoice.objects.filter(clinic=clinic)
+            .select_related("patient", "consultation", "created_by")
+            .prefetch_related("items")
+        )
 
         if patient_id:
             invoices = invoices.filter(patient_id=patient_id)
@@ -66,11 +63,6 @@ class InvoiceListCreateView(APIView):
     def post(self, request):
         """Create a new invoice."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Validate consultation belongs to clinic
         consultation_id = request.data.get("consultation")
@@ -126,14 +118,12 @@ class InvoiceDetailView(APIView):
     DELETE: Delete an invoice.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get invoice by ID, ensuring it belongs to user's clinic."""
         return get_object_or_404(
-            Invoice.objects.select_related(
-                "patient", "consultation", "created_by"
-            ).prefetch_related("items"),
+            Invoice.objects.select_related("patient", "consultation", "created_by").prefetch_related("items"),
             pk=pk,
             clinic=request.user.clinic,
         )
@@ -215,23 +205,20 @@ class ConsultationInvoiceView(APIView):
     POST: Create invoice for a consultation with auto-populated service.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request, consultation_id):
         """Get invoice for a consultation."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         consultation = get_object_or_404(Consultation, id=consultation_id, clinic=clinic)
 
         try:
-            invoice = Invoice.objects.select_related(
-                "patient", "consultation", "created_by"
-            ).prefetch_related("items").get(consultation=consultation)
+            invoice = (
+                Invoice.objects.select_related("patient", "consultation", "created_by")
+                .prefetch_related("items")
+                .get(consultation=consultation)
+            )
 
             return Response(
                 {
@@ -253,14 +240,8 @@ class ConsultationInvoiceView(APIView):
     def post(self, request, consultation_id):
         """Create invoice for a consultation with auto-populated service."""
         from datetime import date
-        from decimal import Decimal
 
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         consultation = get_object_or_404(
             Consultation.objects.select_related("appointment__service"),
@@ -287,12 +268,14 @@ class ConsultationInvoiceView(APIView):
             items = []
             if consultation.appointment and consultation.appointment.service:
                 service = consultation.appointment.service
-                items.append({
-                    "service_id": service.id,
-                    "description": service.name,
-                    "quantity": 1,
-                    "unit_price": str(service.price),
-                })
+                items.append(
+                    {
+                        "service_id": service.id,
+                        "description": service.name,
+                        "quantity": 1,
+                        "unit_price": str(service.price),
+                    }
+                )
             data["items"] = items
 
         # Set defaults
@@ -330,7 +313,7 @@ class InvoicePayView(APIView):
     PATCH: Record payment for an invoice.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def patch(self, request, pk):
         """Record payment - marks invoice as paid."""
@@ -368,7 +351,7 @@ class InvoiceFinalizeView(APIView):
     PATCH: Finalize invoice (draft -> pending).
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def patch(self, request, pk):
         """Finalize invoice - move from draft to pending."""
@@ -406,7 +389,7 @@ class InvoiceCancelView(APIView):
     PATCH: Cancel an invoice.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def patch(self, request, pk):
         """Cancel an invoice."""
@@ -444,25 +427,21 @@ class UnbilledConsultationsView(APIView):
     GET: List all consultations that don't have an invoice.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """Get consultations without invoices."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Get consultations that don't have an invoice
-        consultations = Consultation.objects.filter(
-            clinic=clinic,
-        ).exclude(
-            invoice__isnull=False
-        ).select_related(
-            "patient", "appointment__service"
-        ).order_by("-consultation_date", "-consultation_time")
+        consultations = (
+            Consultation.objects.filter(
+                clinic=clinic,
+            )
+            .exclude(invoice__isnull=False)
+            .select_related("patient", "appointment__service")
+            .order_by("-consultation_date", "-consultation_time")
+        )
 
         # Build response data
         data = []
@@ -473,17 +452,21 @@ class UnbilledConsultationsView(APIView):
                 service_name = consultation.appointment.service.name
                 service_price = float(consultation.appointment.service.price)
 
-            data.append({
-                "id": consultation.id,
-                "consultation_id": consultation.consultation_id,
-                "consultation_date": consultation.consultation_date,
-                "consultation_time": str(consultation.consultation_time) if consultation.consultation_time else None,
-                "patient_id": consultation.patient_id,
-                "patient_name": consultation.patient.full_name if consultation.patient else None,
-                "service_name": service_name,
-                "service_price": service_price,
-                "status": consultation.status,
-            })
+            data.append(
+                {
+                    "id": consultation.id,
+                    "consultation_id": consultation.consultation_id,
+                    "consultation_date": consultation.consultation_date,
+                    "consultation_time": str(consultation.consultation_time)
+                    if consultation.consultation_time
+                    else None,
+                    "patient_id": consultation.patient_id,
+                    "patient_name": consultation.patient.full_name if consultation.patient else None,
+                    "service_name": service_name,
+                    "service_price": service_price,
+                    "status": consultation.status,
+                }
+            )
 
         return Response(
             {

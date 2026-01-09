@@ -175,8 +175,7 @@ class Command(BaseCommand):
         patients = list(Patient.objects.filter(clinic=clinic, status="active"))
         if not patients:
             raise CommandError(
-                f"No active patients found for clinic {clinic.name}. "
-                "Please run populate_patients first."
+                f"No active patients found for clinic {clinic.name}. Please run populate_patients first."
             ) from None
 
         self.stdout.write(f"Found {len(patients)} active patients")
@@ -211,9 +210,7 @@ class Command(BaseCommand):
             if created_count % 5 == 0:
                 self.stdout.write(f"Created {created_count} consultations...")
 
-        self.stdout.write(
-            self.style.SUCCESS(f"Successfully created {created_count} consultations for {clinic.name}")
-        )
+        self.stdout.write(self.style.SUCCESS(f"Successfully created {created_count} consultations for {clinic.name}"))
 
     def _create_consultation(self, clinic, consultation_id, patient, created_by):
         """Create a single consultation with random chief complaint and vital signs."""

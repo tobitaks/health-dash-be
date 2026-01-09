@@ -5,10 +5,10 @@ API views for Service CRUD operations.
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import IsAuthenticatedWithClinicAccess
 from apps.clinic.models import Service
 from apps.clinic.serializers import ServiceCreateUpdateSerializer, ServiceSerializer
 
@@ -19,16 +19,11 @@ class ServiceListCreateView(APIView):
     POST: Create a new service.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get(self, request):
         """List all services for the clinic."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         services = Service.objects.filter(clinic=clinic)
         return Response(
@@ -42,11 +37,6 @@ class ServiceListCreateView(APIView):
     def post(self, request):
         """Create a new service."""
         clinic = request.user.clinic
-        if not clinic:
-            return Response(
-                {"success": False, "message": _("User has no clinic")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         serializer = ServiceCreateUpdateSerializer(
             data=request.data,
@@ -77,7 +67,7 @@ class ServiceDetailView(APIView):
     DELETE: Delete a service.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedWithClinicAccess]
 
     def get_object(self, pk, request):
         """Get service by ID, ensuring it belongs to user's clinic."""

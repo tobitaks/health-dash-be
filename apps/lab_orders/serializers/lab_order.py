@@ -34,12 +34,14 @@ class LabOrderItemSerializer(serializers.ModelSerializer):
     def get_category_display(self, obj):
         """Get display value for category."""
         from apps.lab_orders.models import LabTest
+
         category_dict = dict(LabTest.CATEGORY_CHOICES)
         return str(category_dict.get(obj.category, obj.category))
 
     def get_sample_type_display(self, obj):
         """Get display value for sample_type."""
         from apps.lab_orders.models import LabTest
+
         sample_type_dict = dict(LabTest.SAMPLE_TYPE_CHOICES)
         return str(sample_type_dict.get(obj.sample_type, obj.sample_type))
 
@@ -82,9 +84,7 @@ class LabOrderSerializer(serializers.ModelSerializer):
     test_count = serializers.IntegerField(read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     priority_display = serializers.CharField(source="get_priority_display", read_only=True)
-    consultation_id_display = serializers.CharField(
-        source="consultation.consultation_id", read_only=True
-    )
+    consultation_id_display = serializers.CharField(source="consultation.consultation_id", read_only=True)
 
     class Meta:
         model = LabOrder
@@ -149,6 +149,7 @@ class LabOrderCreateUpdateSerializer(serializers.ModelSerializer):
             lab_test_id = item_data.pop("lab_test_id", None)
             if lab_test_id:
                 from apps.lab_orders.models import LabTest
+
                 try:
                     lab_test = LabTest.objects.get(id=lab_test_id)
                     item_data["lab_test"] = lab_test
@@ -185,6 +186,7 @@ class LabOrderCreateUpdateSerializer(serializers.ModelSerializer):
                 lab_test_id = item_data.pop("lab_test_id", None)
                 if lab_test_id:
                     from apps.lab_orders.models import LabTest
+
                     try:
                         lab_test = LabTest.objects.get(id=lab_test_id)
                         item_data["lab_test"] = lab_test
