@@ -2,6 +2,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from apps.consultations.models import Consultation
+from apps.utils.sanitization import sanitize_text
 
 
 class ConsultationSerializer(serializers.ModelSerializer):
@@ -108,6 +109,10 @@ class ConsultationCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("Appointment does not belong to your clinic."))
         return value
 
+    def validate_chief_complaint(self, value):
+        """Sanitize chief complaint to prevent XSS."""
+        return sanitize_text(value)
+
 
 # =============================================================================
 # Section-Specific Update Serializers
@@ -120,6 +125,10 @@ class ConsultationBasicUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Consultation
         fields = ("chief_complaint", "consultation_date", "consultation_time", "status")
+
+    def validate_chief_complaint(self, value):
+        """Sanitize chief complaint to prevent XSS."""
+        return sanitize_text(value)
 
 
 class ConsultationVitalsUpdateSerializer(serializers.ModelSerializer):
@@ -148,6 +157,22 @@ class ConsultationSOAPUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Consultation
         fields = ("soap_subjective", "soap_objective", "soap_assessment", "soap_plan")
+
+    def validate_soap_subjective(self, value):
+        """Sanitize SOAP subjective notes to prevent XSS."""
+        return sanitize_text(value)
+
+    def validate_soap_objective(self, value):
+        """Sanitize SOAP objective notes to prevent XSS."""
+        return sanitize_text(value)
+
+    def validate_soap_assessment(self, value):
+        """Sanitize SOAP assessment notes to prevent XSS."""
+        return sanitize_text(value)
+
+    def validate_soap_plan(self, value):
+        """Sanitize SOAP plan notes to prevent XSS."""
+        return sanitize_text(value)
 
 
 class ConsultationDiagnosisUpdateSerializer(serializers.ModelSerializer):
@@ -196,3 +221,7 @@ class ConsultationFollowUpUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Consultation
         fields = ("follow_up_date", "follow_up_notes")
+
+    def validate_follow_up_notes(self, value):
+        """Sanitize follow-up notes to prevent XSS."""
+        return sanitize_text(value)

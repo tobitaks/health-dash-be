@@ -2,7 +2,6 @@
 Management command to populate common lab tests for a clinic.
 """
 
-
 from django.core.management.base import BaseCommand
 
 from apps.lab_orders.models import LabTest
