@@ -539,6 +539,8 @@ LLM_MODELS = {
 DEFAULT_LLM_MODEL = env("DEFAULT_LLM_MODEL", default="gpt-4o")
 # see: https://ai.pydantic.dev/models/overview/ for model options
 DEFAULT_AGENT_MODEL = env("DEFAULT_AGENT_MODEL", default="openai:gpt-4o")
+# OpenAI speech-to-text model used for dictated chief complaints (via LiteLLM)
+TRANSCRIPTION_MODEL = env("TRANSCRIPTION_MODEL", default="gpt-4o-transcribe")
 if DEFAULT_LLM_MODEL not in LLM_MODELS:
     raise ValueError(f"DEFAULT_LLM_MODEL {DEFAULT_LLM_MODEL} not found in LLM_MODELS")
 

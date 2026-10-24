@@ -11,6 +11,7 @@ from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -26,7 +27,7 @@ from apps.consultations.serializers import (
     ConsultationSOAPUpdateSerializer,
     ConsultationVitalsUpdateSerializer,
 )
-from apps.consultations.services import build_soap_context, generate_soap_with_ai
+from apps.consultations.services import MAX_AUDIO_BYTES, build_soap_context, generate_soap_with_ai, transcribe_audio
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +235,57 @@ class GenerateSOAPView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class TranscribeChiefComplaintView(APIView):
+    """
+    POST: Transcribe a dictated audio clip into chief complaint text.
+
+    Accepts multipart form data with an ``audio`` file. Returns the transcript only;
+    the caller decides whether to save it to the consultation.
+    """
+
+    permission_classes = [IsAuthenticatedWithClinicAccess]
+    parser_classes = [MultiPartParser]
+
+    def post(self, request, pk):
+        if not (getattr(settings, "OPENAI_API_KEY", "") or ""):
+            return Response(
+                {
+                    "success": False,
+                    "message": _("Transcription service is not configured. Please contact administrator."),
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        get_object_or_404(Consultation.objects.only("id"), pk=pk, clinic=request.user.clinic)
+
+        audio = request.FILES.get("audio")
+        if audio is None:
+            return Response(
+                {"success": False, "message": _("An audio file is required.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if audio.size > MAX_AUDIO_BYTES:
+            return Response(
+                {"success": False, "message": _("Audio file is too large. Maximum size is 25 MB.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            transcript = transcribe_audio(audio.file, audio.name, audio.content_type)
+        except Exception as e:
+            logger.exception("Error transcribing chief complaint audio")
+            return Response(
+                {
+                    "success": False,
+                    "message": _("Failed to transcribe audio. Please try again."),
+                    "error": str(e) if settings.DEBUG else None,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response({"success": True, "transcript": transcript}, status=status.HTTP_200_OK)
 
 
 # =============================================================================

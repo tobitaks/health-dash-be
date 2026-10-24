@@ -4,6 +4,7 @@ from apps.api.consultation_views import (
     ConsultationDetailView,
     ConsultationListCreateView,
     GenerateSOAPView,
+    TranscribeChiefComplaintView,
     UpdateBasicView,
     UpdateDiagnosisView,
     UpdateFollowUpView,
@@ -16,6 +17,7 @@ urlpatterns = [
     path("", ConsultationListCreateView.as_view(), name="list-create"),
     path("<int:pk>/", ConsultationDetailView.as_view(), name="detail"),
     path("<int:pk>/generate-soap/", GenerateSOAPView.as_view(), name="generate-soap"),
+    path("<int:pk>/transcribe/", TranscribeChiefComplaintView.as_view(), name="transcribe-chief-complaint"),
     # Section-specific update endpoints
     path("<int:pk>/basic/", UpdateBasicView.as_view(), name="update-basic"),
     path("<int:pk>/vitals/", UpdateVitalsView.as_view(), name="update-vitals"),
